@@ -1,0 +1,25 @@
+.instance-node{
+    padding: 10px;
+    border: 2px solid #3f51b5;
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;  /* Ajusta el ancho según sea necesario */
+    height: 100%; /* Ajusta la altura según sea necesario */
+    background-color: #e3f2fd; 
+}
+
+.instance-node-title{
+    text-align: center;
+    margin-bottom: 10px;
+    color: #3f51b5;
+}
+
+.instance-node-icon-container{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-grow: 1;
+}
+

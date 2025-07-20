@@ -215,9 +215,6 @@ function MainFlow() {
 
     const deleteNodeInstance = () => {
 
-        //TODO delete childs from parents first if node is subnetwork
-
-
         setNodes((nds) => {
             const nodeToDelete = nds.find((node) => node.id === clickedNodeId);
             console.log("nodeToDelete: ", nodeToDelete.type);
@@ -227,9 +224,36 @@ function MainFlow() {
                 return nds;
             }
 
+            // ---- Borrado recursivo desde nodo tipo VPC ----
+            if (nodeToDelete.type === TYPE_VPC_NODE) {
+
+                //1. Encontrar todo los nodos subnets de la VPC
+                const subnetworksToDelete = nds.filter((node) => node.parentNode === nodeToDelete.id && node.type === TYPE_SUBNETWORK_NODE);
+
+                //2. Encuentra todas las Instancias e hijos de las subnets
+                const subnetIds = subnetworksToDelete.map((subnet) => subnet.id);
+                const instancesToDelete = nds.filter((node) => subnetIds.includes(node.parentNode));
+
+
+                //3. Filtrar fuera: la VPC, sus Subnets y todas las Instancias hijas
+                return nds.filter((n) =>
+                    n.id !== nodeToDelete.id && // Quita la VPC
+                    !subnetIds.includes(n.id) && // Quita las subnets hijas
+                    !instancesToDelete.some((inst) => inst.id === n.id) // Quita instancias hijas de las subnets
+                )
+            }
+
+
+            // ---- Borrado recursivo desde nodo tipo Subnet ----
             if (nodeToDelete.type === TYPE_SUBNETWORK_NODE) {
-                const updatedNodes = nds.filter((node) => node.parentId !== nodeToDelete.id && node.id !== clickedNodeId);
-                return updatedNodes;
+                // 1. Encuentra todas las Instancias dentro de la Subnet
+                const instancesToDelete = nds.filter((n) => n.parentNode === nodeToDelete.id);
+                // 2. Filtra fuera la Subnet y sus hijos
+                return nds.filter(
+                    (n) =>
+                        n.id !== nodeToDelete.id &&
+                        !instancesToDelete.some((inst) => inst.id === n.id)
+                );
             }
 
             return nds.filter((node) => node.id !== clickedNodeId);
@@ -424,7 +448,7 @@ function MainFlow() {
 
     const onNodeDragStart = useNodeDragStart({ dragRef });
     const onNodeDrag = useNodeDrag({ nodes, setTarget, TYPE_SUBNETWORK_NODE });
-    const onNodeDragStop = useNodeDragStop({ nodes, setNodes, reactFlow, TYPE_SUBNETWORK_NODE });
+    const onNodeDragStop = useNodeDragStop({ nodes, setNodes, reactFlow, TYPE_SUBNETWORK_NODE, TYPE_VPC_NODE });
     const onSaveFlow = useSaveFlow({ reactFlowInstance, flowKey, vpcid });
     const onRestoreFlow = useRestoreFlow({ setNodes, setEdges, setViewport, flowKey, getId });
 

@@ -1,0 +1,8 @@
+.node-vpc {
+  border: 3px dashed #0B8068;
+  border-radius: 16px;
+  background-color: #e8eaf6;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}

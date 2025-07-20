@@ -12,6 +12,7 @@ export const heightDefaultSubNetworkNode = 600;
 
 
 export const TYPE_DEFAULT_NODE  = "default";
+export const TYPE_VPC_NODE = 'vpc';
 export const TYPE_SUBNETWORK_NODE  = "subnetwork";
 export const TYPE_ROUTER_NODE  = "router";
 export const TYPE_COMPUTER_NODE  = "computer"

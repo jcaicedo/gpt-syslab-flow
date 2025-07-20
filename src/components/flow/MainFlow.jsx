@@ -41,6 +41,7 @@ import InstanceNodeForm from './forms/InstanceNodeForm';
 import SubNetworkNodeForm from './forms/SubNetworkNodeForm';
 import InstanceNode from "./node-types/InstanceNode";
 import RouterNodeInstance from "./node-types/RouterNodeInstance";
+import VPCNodeInstance from "./node-types/VPCNodeInstance";
 import SubNetworkNodeInstance from './node-types/SubNetworkNodeInstance';
 import useCidrBlockVPCStore from './store/cidrBlocksIp';
 import useClickedNodeIdStore from './store/clickedNodeIdStore';
@@ -60,6 +61,7 @@ import {
     TYPE_ROUTER_NODE,
     TYPE_SERVER_NODE,
     TYPE_SUBNETWORK_NODE,
+    TYPE_VPC_NODE,
     widthDefaultInstanceNode,
     widthDefaultInstanceRouter,
     widthDefaultSubNetworkNode,
@@ -81,6 +83,7 @@ import { useContext } from "react";
 //const connectionLineStyle = { stroke: "white" };
 
 const nodeTypes = {
+    vpc: VPCNodeInstance,
     subnetwork: SubNetworkNodeInstance,
     router: RouterNodeInstance,
     computer: InstanceNode,
@@ -89,7 +92,7 @@ const nodeTypes = {
 }
 
 
-const restrictedNodes = [TYPE_DEFAULT_NODE, TYPE_COMPUTER_NODE, TYPE_PRINTER_NODE, TYPE_SERVER_NODE]
+const restrictedNodes = [TYPE_DEFAULT_NODE, TYPE_COMPUTER_NODE, TYPE_PRINTER_NODE, TYPE_SERVER_NODE, TYPE_SUBNETWORK_NODE]
 
 
 const makeRandomId = (length) => {
@@ -325,46 +328,85 @@ function MainFlow() {
             if (restrictedNodes.includes(type)) {
                 console.log('Handling restricted node drop');
 
-                const isInsideNetworkNode = nodes.some((node) => {
-                    if (node.type === TYPE_SUBNETWORK_NODE) {
-                        console.log('Subnetwork node detected:', node.id);
+                if (type === TYPE_SUBNETWORK_NODE) {
+                    const isInsideVpcNode = nodes.some((node) => {
+                        if (node.type === TYPE_VPC_NODE) {
+                            console.log('VPC node detected:', node.id);
 
-                        // Verificar si el nodo está dentro de los límites del subnetwork
-                        const isWithinParent =
-                            centerPositionBound.x > node.position.x &&
-                            centerPositionBound.x < node.position.x + node.style.width &&
-                            centerPositionBound.y > node.position.y &&
-                            centerPositionBound.y < node.position.y + node.style.height;
+                            // Verificar si el centro de la subnet está dentro del vpc
+                            const isWithinParent =
+                                centerPositionBound.x > node.position.x &&
+                                centerPositionBound.x < node.position.x + node.style.width &&
+                                centerPositionBound.y > node.position.y &&
+                                centerPositionBound.y < node.position.y + node.style.height;
 
-                        if (isWithinParent) {
-                            console.log("Node belongs to subnetwork:", node.id);
+                            if (isWithinParent) {
+                                // Ajusta la posición relativa al VPC
+                                const relativeX = position.x - node.position.x;
+                                const relativeY = position.y - node.position.y;
+                                newNode = {
+                                    ...newNode,
+                                    parentId: node.id,  // Establece el VPC como nodo padre
+                                    position: {
+                                        x: relativeX,
+                                        y: relativeY,
+                                    },
+                                    extent: 'parent',
+                                };
+                                return true;
 
-                            // Ajustamos la posición relativa al subnetwork
-                            const relativeX = position.x - node.position.x;
-                            const relativeY = position.y - node.position.y;
-
-                            newNode = {
-                                ...newNode,
-                                parentId: node.id,  // Establecer el subnetwork como nodo padre
-                                position: {
-                                    x: relativeX,  // Posición relativa al subnetwork
-                                    y: relativeY,
-                                },
-                                extent: 'parent',  // Confirmar que es un nodo hijo
-                            };
-
-                            console.log('Adjusted newNode position inside subnetwork:', newNode.position);
-
-                            return true;
+                            }
                         }
+                        return false;
+                    });
+                    if (!isInsideVpcNode) {
+                        alert('Las Subnets solo pueden ser creadas dentro de un nodo VPC.');
+                        return;
                     }
-                    return false;
-                });
-
-                if (!isInsideNetworkNode) {
-                    alert('Default nodes can only be dropped inside a subnetwork node.');
-                    return;
                 }
+
+
+                // const isInsideNetworkNode = nodes.some((node) => {
+                //     if (type === TYPE_SUBNETWORK_NODE) {
+                //         console.log('Subnetwork node detected:', node.id);
+
+                //         // Verificar si el nodo está dentro de los límites del subnetwork
+                //         const isWithinParent =
+                //             centerPositionBound.x > node.position.x &&
+                //             centerPositionBound.x < node.position.x + node.style.width &&
+                //             centerPositionBound.y > node.position.y &&
+                //             centerPositionBound.y < node.position.y + node.style.height;
+
+                //         if (isWithinParent) {
+                //             console.log("Node belongs to subnetwork:", node.id);
+
+                //             // Ajustamos la posición relativa al subnetwork
+                //             const relativeX = position.x - node.position.x;
+                //             const relativeY = position.y - node.position.y;
+
+                //             newNode = {
+                //                 ...newNode,
+                //                 parentId: node.id,  // Establecer el subnetwork como nodo padre
+                //                 position: {
+                //                     x: relativeX,  // Posición relativa al subnetwork
+                //                     y: relativeY,
+                //                 },
+                //                 extent: 'parent',  // Confirmar que es un nodo hijo
+                //             };
+
+                //             console.log('Adjusted newNode position inside subnetwork:', newNode.position);
+
+                //             return true;
+                //         }
+                //     }
+                //     return false;
+                // });
+
+                // if (!isInsideNetworkNode) {
+                //     alert('Default nodes can only be dropped inside a subnetwork node.');
+                //     return;
+                // }
+
 
 
             }

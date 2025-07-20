@@ -1,5 +1,5 @@
 import { Box, Typography, Grid, Card } from '@mui/material'
-import { TITLE_COMPUTER, TITLE_PRINT, TITLE_ROUTER, TITLE_SERVER, TITLE_SUBNETWORK, TYPE_COMPUTER_NODE, TYPE_PRINTER_NODE, TYPE_ROUTER_NODE, TYPE_SERVER_NODE,TYPE_SUBNETWORK_NODE } from './utils/constants'
+import { TITLE_COMPUTER, TITLE_PRINT, TITLE_ROUTER, TITLE_SERVER, TITLE_SUBNETWORK, TYPE_COMPUTER_NODE, TYPE_PRINTER_NODE, TYPE_ROUTER_NODE, TYPE_SERVER_NODE, TYPE_SUBNETWORK_NODE, TYPE_VPC_NODE } from './utils/constants'
 
 
 const SidebarFlow = () => {
@@ -8,7 +8,7 @@ const SidebarFlow = () => {
         event.dataTransfer.setData("application/reactflow", nodeType)
         event.dataTransfer.effectAllowed = "move"
     }
-   // console.log(onDragStart);
+    // console.log(onDragStart);
 
     return (
         <Box sx={{ mt: 2 }}>
@@ -16,6 +16,13 @@ const SidebarFlow = () => {
                 INSTANCES
             </Typography>
             <Grid container>
+                <Grid item xs={12}> <Card
+                    draggable
+                    onDragStart={e => onDragStart(e, TYPE_VPC_NODE)}
+                    sx={{ display: "flex", background: '#0B8068', color: 'white', alignItems: "center", p: 3 }}
+                >
+                    VPC
+                </Card></Grid>
                 <Grid item xs={12}>
                     <Card
                         onDragStart={(event) => onDragStart(event, TYPE_SUBNETWORK_NODE)}
@@ -24,6 +31,7 @@ const SidebarFlow = () => {
                     >
                         <Box sx={{ flexGrow: 1, minWidth: 0 }}>{TITLE_SUBNETWORK}</Box>
                     </Card>
+
                 </Grid>
                 <Grid item xs={12}>
                     <Card

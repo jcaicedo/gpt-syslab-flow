@@ -55,3 +55,8 @@ export const TITLE_SUBNETWORK = 'SUBNETWORK'
 // Database
 export const DB_AMI_LIST = 'amilist'
 
+export const restrictedNodes = [
+  "computer",
+  "printer",
+  "server",
+];

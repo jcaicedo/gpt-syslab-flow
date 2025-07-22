@@ -279,18 +279,13 @@ function MainFlow() {
 
             const type = event.dataTransfer.getData("application/reactflow");
 
-            if (typeof type === "undefined" || !type) {
-                return;
-            }
-
-            console.log("onDrop triggered");
+            if (!type) return;
 
             const position = reactFlowInstance.screenToFlowPosition({
                 x: event.clientX,
                 y: event.clientY,
             });
 
-            console.log('Position calculated:', position);
             console.log('Type:', type);
 
             let widthCurrent = widthDefaultInstanceNode;
@@ -319,14 +314,13 @@ function MainFlow() {
                 y: position.y + heightCurrent / 2,
             };
 
-            console.log('CenterPositionBound calculated:', centerPositionBound);
 
             const new_id = getId.nextId();
 
             let newNode = {
                 id: new_id,
                 type,
-                position,  // Posición en flujo global inicialmente
+                position,  // Posición global inicial
                 data: {
                     label: `${type + new_id} node`,
                     title: getNodeTitle({ type }),
@@ -348,94 +342,77 @@ function MainFlow() {
             // }
 
 
-            // Si es un nodo restringido, comprobar si se debe colocar dentro de un subnetwork
-            if (restrictedNodes.includes(type)) {
-                console.log('Handling restricted node drop');
+            // 1️⃣ REGLA: Subnet solo puede ser creada dentro de un VPC
+            if (type === TYPE_SUBNETWORK_NODE) {
+                const vpcNode = nodes.find(node =>
+                    node.type === TYPE_VPC_NODE &&
+                    centerPositionBound.x > node.position.x &&
+                    centerPositionBound.x < node.position.x + (node.style.width || node.width) &&
+                    centerPositionBound.y > node.position.y &&
+                    centerPositionBound.y < node.position.y + (node.style.height || node.height)
+                )
 
-                if (type === TYPE_SUBNETWORK_NODE) {
-                    const isInsideVpcNode = nodes.some((node) => {
-                        if (node.type === TYPE_VPC_NODE) {
-                            console.log('VPC node detected:', node.id);
-
-                            // Verificar si el centro de la subnet está dentro del vpc
-                            const isWithinParent =
-                                centerPositionBound.x > node.position.x &&
-                                centerPositionBound.x < node.position.x + node.style.width &&
-                                centerPositionBound.y > node.position.y &&
-                                centerPositionBound.y < node.position.y + node.style.height;
-
-                            if (isWithinParent) {
-                                // Ajusta la posición relativa al VPC
-                                const relativeX = position.x - node.position.x;
-                                const relativeY = position.y - node.position.y;
-                                newNode = {
-                                    ...newNode,
-                                    parentId: node.id,  // Establece el VPC como nodo padre
-                                    position: {
-                                        x: relativeX,
-                                        y: relativeY,
-                                    },
-                                    extent: 'parent',
-                                };
-                                return true;
-
-                            }
-                        }
-                        return false;
-                    });
-                    if (!isInsideVpcNode) {
-                        alert('Las Subnets solo pueden ser creadas dentro de un nodo VPC.');
-                        return;
-                    }
+                if (!vpcNode) {
+                    alert('Las Subnets solo pueden ser creadas dentro de un nodo VPC.');
+                    return;
                 }
 
 
-                // const isInsideNetworkNode = nodes.some((node) => {
-                //     if (type === TYPE_SUBNETWORK_NODE) {
-                //         console.log('Subnetwork node detected:', node.id);
+                //Ajusta la posicion relativa al VPC y establece el nodo padre
+                const relativeX = position.x - vpcNode.position.x;
+                const relativeY = position.y - vpcNode.position.y;
 
-                //         // Verificar si el nodo está dentro de los límites del subnetwork
-                //         const isWithinParent =
-                //             centerPositionBound.x > node.position.x &&
-                //             centerPositionBound.x < node.position.x + node.style.width &&
-                //             centerPositionBound.y > node.position.y &&
-                //             centerPositionBound.y < node.position.y + node.style.height;
+                newNode = {
+                    ...newNode,
+                    parentId: vpcNode.id,  // Establece el VPC como nodo padre
+                    position: {
+                        x: relativeX,
+                        y: relativeY,
+                    },
+                    extent: 'parent', // Indica que es un nodo hijo de un VPC
+                };
+            }
 
-                //         if (isWithinParent) {
-                //             console.log("Node belongs to subnetwork:", node.id);
-
-                //             // Ajustamos la posición relativa al subnetwork
-                //             const relativeX = position.x - node.position.x;
-                //             const relativeY = position.y - node.position.y;
-
-                //             newNode = {
-                //                 ...newNode,
-                //                 parentId: node.id,  // Establecer el subnetwork como nodo padre
-                //                 position: {
-                //                     x: relativeX,  // Posición relativa al subnetwork
-                //                     y: relativeY,
-                //                 },
-                //                 extent: 'parent',  // Confirmar que es un nodo hijo
-                //             };
-
-                //             console.log('Adjusted newNode position inside subnetwork:', newNode.position);
-
-                //             return true;
-                //         }
-                //     }
-                //     return false;
-                // });
-
-                // if (!isInsideNetworkNode) {
-                //     alert('Default nodes can only be dropped inside a subnetwork node.');
-                //     return;
-                // }
+            // 2️⃣ REGLA: Instancias solo pueden ser creadas dentro de una Subnet
 
 
+
+
+
+            // Si es un nodo restringido, comprobar si se debe colocar dentro de un subnetwork
+            if (restrictedNodes.includes(type) && type !== TYPE_SUBNETWORK_NODE) {
+
+                const subnetNode = nodes.find(node =>
+                    node.type === TYPE_SUBNETWORK_NODE &&
+                    centerPositionBound.x > node.position.x &&
+                    centerPositionBound.x < node.position.x + (node.style.width || node.width) &&
+                    centerPositionBound.y > node.position.y &&
+                    centerPositionBound.y < node.position.y + (node.style.height || node.height)
+
+                )
+
+                if (!subnetNode) {
+                    alert('Las instancias solo pueden ser creadas dentro de una Subnet.');
+                    return;
+                }
+
+                // Ajusta la posición relativa a la Subnet y define parentNode
+                const relativeX = position.x - subnetNode.position.x;
+                const relativeY = position.y - subnetNode.position.y;
+                newNode = {
+                    ...newNode,
+                    parentNode: subnetNode.id,
+                    position: {
+                        x: relativeX,
+                        y: relativeY,
+                    },
+                    extent: 'parent',
+                };
 
             }
 
-            // Guardamos el nodo (hijo o no) al estado
+            // 3️⃣ Agrega el nodo al estado solo si pasó las validaciones
+
             setNodes((nds) => nds.concat(newNode));
 
             console.log('Updated nodes list:', reactFlowInstance.getNodes());

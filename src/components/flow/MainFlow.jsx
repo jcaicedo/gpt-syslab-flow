@@ -144,8 +144,6 @@ function MainFlow() {
     const [restorationDone, setRestorationDone] = useState(false);
     const { loadingFlow } = useContext(LoadingFlowContext);
 
-    const reactFlow = useReactFlow();
-
     // eslint-disable-next-line no-unused-vars
     const [target, setTarget] = useState(null);
     const [amiList, setAmiList] = useState([])
@@ -365,6 +363,7 @@ function MainFlow() {
                 newNode = {
                     ...newNode,
                     parentId: vpcNode.id,  // Establece el VPC como nodo padre
+                    parentNode: vpcNode.id,
                     position: {
                         x: relativeX,
                         y: relativeY,
@@ -402,6 +401,7 @@ function MainFlow() {
                 newNode = {
                     ...newNode,
                     parentNode: subnetNode.id,
+                    parentId: subnetNode.id,
                     position: {
                         x: relativeX,
                         y: relativeY,
@@ -425,7 +425,7 @@ function MainFlow() {
 
     const onNodeDragStart = useNodeDragStart({ dragRef });
     const onNodeDrag = useNodeDrag({ nodes, setTarget, TYPE_SUBNETWORK_NODE });
-    const onNodeDragStop = useNodeDragStop({ nodes, setNodes, reactFlow, TYPE_SUBNETWORK_NODE, TYPE_VPC_NODE });
+    const onNodeDragStop = useNodeDragStop({ nodes, setNodes, reactFlowInstance });
     const onSaveFlow = useSaveFlow({ reactFlowInstance, flowKey, vpcid });
     const onRestoreFlow = useRestoreFlow({ setNodes, setEdges, setViewport, flowKey, getId });
 

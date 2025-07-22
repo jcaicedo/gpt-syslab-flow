@@ -76,6 +76,7 @@ import RouteTableFormFullScreen from "./forms/RouteTableFormFullScreen";
 import getNodeTitle from "./utils/getNodeTitle";
 import { LoadingFlowContext } from "../../contexts/LoadingFlowContext";
 import { useContext } from "react";
+import { useRestrictSubnetsInsideVPC } from "./flow-hooks/useRestrictSubnetsInsideVPC";
 
 
 
@@ -143,7 +144,7 @@ function MainFlow() {
     const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
     const [restorationDone, setRestorationDone] = useState(false);
     const { loadingFlow } = useContext(LoadingFlowContext);
-
+    useRestrictSubnetsInsideVPC()
     const reactFlow = useReactFlow();
 
     // eslint-disable-next-line no-unused-vars
@@ -554,7 +555,7 @@ function MainFlow() {
                             onDrop={onDrop}
                             onNodeDragStart={onNodeDragStart}
                             onNodeDrag={onNodeDrag}
-                            onNodeDragStop={onNodeDragStop}
+                            //onNodeDragStop={onNodeDragStop}
                             onDragOver={onDragOver}
                             snapToGrid
                             onConnectStart={onConnectStart}

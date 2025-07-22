@@ -23,24 +23,31 @@ function isInsideParent(childNode, parentNode, nodes) {
     const parentH = parentNode.style?.height ?? parentNode.height ?? 0;
     const childW = childNode.style?.width ?? childNode.width ?? 0;
     const childH = childNode.style?.height ?? childNode.height ?? 0;
-    const childCenterX = childAbs.x + childW / 2;
-    const childCenterY = childAbs.y + childH / 2;
+
+    // Bordes del padre
+    const px1 = parentAbs.x;
+    const px2 = parentAbs.x + parentW;
+    const py1 = parentAbs.y;
+    const py2 = parentAbs.y + parentH;
+
+    // Bordes del hijo
+    const cx1 = childAbs.x;
+    const cx2 = childAbs.x + childW;
+    const cy1 = childAbs.y;
+    const cy2 = childAbs.y + childH;
 
     // LOGS DEBUG
-    console.log("==DEBUG INSIDE CHECK==");
-    console.log("parentNode:", parentNode.id, "abs:", parentAbs, "W:", parentW, "H:", parentH);
-    console.log("childNode:", childNode.id, "abs:", childAbs, "center:", { x: childCenterX, y: childCenterY }, "W:", childW, "H:", childH);
+    console.log("==DEBUG INTERSECTION CHECK==");
+    console.log("parent:", parentNode.id, "x1:", px1, "x2:", px2, "y1:", py1, "y2:", py2);
+    console.log("child :", childNode.id, "x1:", cx1, "x2:", cx2, "y1:", cy1, "y2:", cy2);
 
-    const inside =
-        childCenterX > parentAbs.x &&
-        childCenterX < parentAbs.x + parentW &&
-        childCenterY > parentAbs.y &&
-        childCenterY < parentAbs.y + parentH;
+    // Comprobar si se solapan
+    const overlap = cx1 < px2 && cx2 > px1 && cy1 < py2 && cy2 > py1;
+    console.log("INTERSECT/OVERLAP?", overlap);
 
-    console.log("IS INSIDE?", inside);
-
-    return inside;
+    return overlap;
 }
+
 
 const useNodeDragStop = ({ nodes, setNodes }) => {
     return useCallback((evt, node) => {

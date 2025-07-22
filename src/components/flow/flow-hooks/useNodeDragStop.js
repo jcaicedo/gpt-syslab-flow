@@ -13,20 +13,23 @@ const useNodeDragStop = ({ nodes, setNodes }) => {
                     nd == null ||
                     nd.type !== TYPE_VPC_NODE ||
                     typeof nd.position !== "object" ||
-                    nd.position == null ||
-                    typeof nd.position.x !== "number" ||
-                    typeof nd.position.y !== "number"
+                    nd.position == null
                 ) {
-                    // Log para rastrear descartes
-                    // console.warn("Nodo VPC descartado por posición inválida", nd);
                     return false;
                 }
+
+                const nodePosX = node.positionAbsolute?.x ?? node.position.x;
+                const nodePosY = node.positionAbsolute?.y ?? node.position.y;
+
+                const targetPosX = nd.positionAbsolute?.x ?? nd.position.x;
+                const targetPosY = nd.positionAbsolute?.y ?? nd.position.y;
+
                 // Validar bounds
                 return (
-                    node.positionAbsolute.x + (node.width || 0) / 2 > nd.position.x &&
-                    node.positionAbsolute.x + (node.width || 0) / 2 < nd.position.x + (nd.style?.width || nd.width || 0) &&
-                    node.positionAbsolute.y + (node.height || 0) / 2 > nd.position.y &&
-                    node.positionAbsolute.y + (node.height || 0) / 2 < nd.position.y + (nd.style?.height || nd.height || 0)
+                    nodePosX + (node.width || 0) / 2 > targetPosX &&
+                    nodePosX + (node.width || 0) / 2 < targetPosX + (nd.style?.width || nd.width || 0) &&
+                    nodePosY + (node.height || 0) / 2 > targetPosY &&
+                    nodePosY + (node.height || 0) / 2 < targetPosY + (nd.style?.height || nd.height || 0)
                 );
             });
 
@@ -39,6 +42,7 @@ const useNodeDragStop = ({ nodes, setNodes }) => {
                             ? {
                                   ...n,
                                   parentNode: vpcTarget.id,
+                                  parentId: vpcTarget.id,
                                   extent: 'parent',
                                   position: { x: xOffset, y: yOffset },
                               }
@@ -60,20 +64,23 @@ const useNodeDragStop = ({ nodes, setNodes }) => {
                     nd == null ||
                     nd.type !== TYPE_SUBNETWORK_NODE ||
                     typeof nd.position !== "object" ||
-                    nd.position == null ||
-                    typeof nd.position.x !== "number" ||
-                    typeof nd.position.y !== "number"
+                    nd.position == null
                 ) {
-                    // Log para rastrear descartes
-                    // console.warn("Nodo Subnet descartado por posición inválida", nd);
                     return false;
                 }
+
+                const nodePosX = node.positionAbsolute?.x ?? node.position.x;
+                const nodePosY = node.positionAbsolute?.y ?? node.position.y;
+
+                const targetPosX = nd.positionAbsolute?.x ?? nd.position.x;
+                const targetPosY = nd.positionAbsolute?.y ?? nd.position.y;
+
                 // Validar bounds
                 return (
-                    node.positionAbsolute.x + (node.width || 0) / 2 > nd.position.x &&
-                    node.positionAbsolute.x + (node.width || 0) / 2 < nd.position.x + (nd.style?.width || nd.width || 0) &&
-                    node.positionAbsolute.y + (node.height || 0) / 2 > nd.position.y &&
-                    node.positionAbsolute.y + (node.height || 0) / 2 < nd.position.y + (nd.style?.height || nd.height || 0)
+                    nodePosX + (node.width || 0) / 2 > targetPosX &&
+                    nodePosX + (node.width || 0) / 2 < targetPosX + (nd.style?.width || nd.width || 0) &&
+                    nodePosY + (node.height || 0) / 2 > targetPosY &&
+                    nodePosY + (node.height || 0) / 2 < targetPosY + (nd.style?.height || nd.height || 0)
                 );
             });
 
@@ -86,6 +93,7 @@ const useNodeDragStop = ({ nodes, setNodes }) => {
                             ? {
                                   ...n,
                                   parentNode: subnetTarget.id,
+                                  parentId: subnetTarget.id,
                                   extent: 'parent',
                                   position: { x: xOffset, y: yOffset },
                               }

@@ -1,88 +1,82 @@
+// in useHandleDrop.js
 import { useCallback } from 'react';
 import {
-  TYPE_VPC_NODE,
-  TYPE_SUBNETWORK_NODE,
+  TYPE_VPC_NODE, TYPE_SUBNETWORK_NODE,
   restrictedNodes,
-  TYPE_ROUTER_NODE,
-  widthDefaultInstanceNode,
-  heightDefaultInstanceNode,
-  widthDefaultInstanceRouter,
-  heightDefaultInstanceRouter,
-  widthDefaultSubNetworkNode,
-  heightDefaultSubNetworkNode,
-  widthDefaultVPCNode,
-  heightDefaultVPCNode,
-  colorBgInstanceNode,
-  colorsBgSubnetworksNodes
+  widthDefaultVPCNode, heightDefaultVPCNode,
+  widthDefaultSubNetworkNode, heightDefaultSubNetworkNode,
+  widthDefaultInstanceNode, heightDefaultInstanceNode,
+  colorBgInstanceNode, colorsBgSubnetworksNodes
 } from '../utils/constants';
 import getNodeTitle from '../utils/getNodeTitle';
 
-const getRandomColorNode = () => colorsBgSubnetworksNodes[Math.floor(Math.random() * colorsBgSubnetworksNodes.length)];
-const makeId = () => Math.random().toString(36).substr(2, 9);
+const getRandomColor = () => colorsBgSubnetworksNodes[
+  Math.floor(Math.random() * colorsBgSubnetworksNodes.length)
+];
 
-const useHandleDrop = (reactFlowInstance, setNodes) => {
-  const onDrop = useCallback(event => {
-    event.preventDefault();
-    const type = event.dataTransfer.getData('application/reactflow');
-    if (!type || !reactFlowInstance) return;
+const makeId = () => Math.random().toString(36).substring(2,10);
 
-    const position = reactFlowInstance.screenToFlowPosition({
-      x: event.clientX,
-      y: event.clientY
-    });
+export default function useHandleDrop(reactFlowInstance, setNodes) {
+  return {
+    onDrop: useCallback(event => {
+      event.preventDefault();
+      if (!reactFlowInstance) return;
 
-    let w = widthDefaultInstanceNode, h = heightDefaultInstanceNode;
-    if (type === TYPE_ROUTER_NODE) {
-      w = widthDefaultInstanceRouter; h = heightDefaultInstanceRouter;
-    } else if (type === TYPE_SUBNETWORK_NODE) {
-      w = widthDefaultSubNetworkNode; h = heightDefaultSubNetworkNode;
-    } else if (type === TYPE_VPC_NODE) {
-      w = widthDefaultVPCNode; h = heightDefaultVPCNode;
-    }
+      const type = event.dataTransfer.getData('application/reactflow');
+      if (!type) return;
 
-    const bg = restrictedNodes.includes(type) || type === TYPE_ROUTER_NODE ? colorBgInstanceNode : getRandomColorNode();
-    const centerX = position.x + w / 2;
-    const centerY = position.y + h / 2;
-    const newNode = {
-      id: makeId(),
-      type,
-      data: { label: `${type}_${Date.now()}`, title: getNodeTitle({ type }), bgNode: bg },
-      position,
-      style: { width: w, height: h }
-    };
-    const all = reactFlowInstance.getNodes();
+      const position = reactFlowInstance.screenToFlowPosition({
+        x: event.clientX,
+        y: event.clientY
+      });
 
-    if (type === TYPE_VPC_NODE) {
-      setNodes(nds => [...nds, newNode]);
-      return;
-    }
+      let width = widthDefaultInstanceNode, height = heightDefaultInstanceNode;
+      if (type === TYPE_VPC_NODE) {
+        width = widthDefaultVPCNode; height = heightDefaultVPCNode;
+      } else if (type === TYPE_SUBNETWORK_NODE) {
+        width = widthDefaultSubNetworkNode; height = heightDefaultSubNetworkNode;
+      }
 
-    if (type === TYPE_SUBNETWORK_NODE) {
-      const parent = all.find(n => n.type === TYPE_VPC_NODE &&
-        centerX >= n.position.x && centerX <= n.position.x + (n.style.width || n.width) &&
-        centerY >= n.position.y && centerY <= n.position.y + (n.style.height || n.height));
-      if (!parent) return;
-      newNode.parentNode = parent.id;
-      newNode.position = { x: position.x - parent.position.x, y: position.y - parent.position.y };
-      newNode.extent = 'parent';
-      setNodes(nds => [...nds, newNode]);
-      return;
-    }
+      const bg = restrictedNodes.includes(type) ? colorBgInstanceNode : getRandomColor();
+      const center = { x: position.x + width/2, y: position.y + height/2 };
+      const id = makeId();
 
-    if (restrictedNodes.includes(type)) {
-      const parent = all.find(n => n.type === TYPE_SUBNETWORK_NODE &&
-        centerX >= n.position.x && centerX <= n.position.x + (n.style.width || n.width) &&
-        centerY >= n.position.y && centerY <= n.position.y + (n.style.height || n.height));
-      if (!parent) return;
-      newNode.parentNode = parent.id;
-      newNode.position = { x: position.x - parent.position.x, y: position.y - parent.position.y };
-      newNode.extent = 'parent';
-      setNodes(nds => [...nds, newNode]);
-      return;
-    }
-  }, [reactFlowInstance]);
+      let newNode = {
+        id, type, position, width, height,
+        data: { label: `${type}-${id}`, title: getNodeTitle({type}), bgNode: bg }
+      };
 
-  return { onDrop };
-};
+      const all = reactFlowInstance.getNodes();
 
-export default useHandleDrop;
+      if (type === TYPE_VPC_NODE) {
+        setNodes(nds => [...nds, newNode]);
+        return;
+      }
+
+      if (type === TYPE_SUBNETWORK_NODE) {
+        const parent = all.find(n =>
+          n.type === TYPE_VPC_NODE &&
+          center.x > n.position.x && center.x < n.position.x + (n.width || n.style?.width) &&
+          center.y > n.position.y && center.y < n.position.y + (n.height || n.style?.height)
+        );
+        if (!parent) return;
+        newNode = { ...newNode, parentId: parent.id, position:{ x: position.x - parent.position.x, y: position.y - parent.position.y }, extent: 'parent' };
+        setNodes(nds => [...nds, newNode]); return;
+      }
+
+      if (restrictedNodes.includes(type)) {
+        const subnet = all.find(n =>
+          n.type === TYPE_SUBNETWORK_NODE &&
+          center.x > n.position.x && center.x < n.position.x + (n.width || n.style?.width) &&
+          center.y > n.position.y && center.y < n.position.y + (n.height || n.style?.height)
+        );
+        if (!subnet) return;
+        newNode = { ...newNode, parentId: subnet.id,
+          position: { x: position.x - subnet.position.x, y: position.y - subnet.position.y },
+          extent: 'parent'
+        };
+        setNodes(nds => [...nds, newNode]); return;
+      }
+    }, [reactFlowInstance, setNodes])
+  };
+}

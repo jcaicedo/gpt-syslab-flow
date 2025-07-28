@@ -7,9 +7,11 @@ export const widthDefaultInstanceRouter = 150;
 export const heightDefaultInstanceRouter = 150;
 
 //Dimensions of the SubNetwork Node
-export const widthDefaultSubNetworkNode = 450;
-export const heightDefaultSubNetworkNode = 600;
+export const widthDefaultSubNetworkNode = 225;
+export const heightDefaultSubNetworkNode = 300;
 
+export const widthDefaultVPCNode = 500;
+export const heightDefaultVPCNode = 600;
 
 export const TYPE_DEFAULT_NODE  = "default";
 export const TYPE_VPC_NODE = 'vpc';

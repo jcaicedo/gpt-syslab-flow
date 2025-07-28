@@ -29,7 +29,7 @@ const AddAmiModal = ({ open, closeModal }) => {
     })
 
     const onSubmit = (data)=>{
-        console.log('onSubmit AddAmiMOdal: ',data);
+        // console.log('onSubmit AddAmiMOdal: ',data);
         closeModal(data)
     }
 

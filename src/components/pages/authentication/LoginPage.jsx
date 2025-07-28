@@ -20,7 +20,7 @@ const LoginPage = () => {
             await loginWithEmail(email, password)
             navigate('/')
         } catch (error) {
-            console.log('Error loggin in with email:', error);
+            // console.log('Error loggin in with email:', error);
         }
     }
 
@@ -29,7 +29,7 @@ const LoginPage = () => {
             await loginWithGoogle()
             navigate('/')
         } catch (error) {
-            console.log('Error loggin in with Google')
+            // console.log('Error loggin in with Google')
         }
     }
 

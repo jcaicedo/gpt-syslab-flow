@@ -8,7 +8,7 @@ const useNodeClick = (setSelectedNode, setModalIsOpen, setOpenRouteTableFullScre
 
 
     const onNodeClick = (event, node) => {
-        console.log("NODE: ", node);
+        // console.log("NODE: ", node);
 
         setSelectedNode(node);
         setClickedNodeId(node.id);

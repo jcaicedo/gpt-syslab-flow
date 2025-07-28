@@ -69,7 +69,7 @@ const RouteTableFormFullScreen = ({
     };
 
     const handleSave = () => {
-        console.log("Rutas guardadas:", routeTable);
+        // console.log("Rutas guardadas:", routeTable);
 
         onSave({ routeTable });
         handleOpenDialog();

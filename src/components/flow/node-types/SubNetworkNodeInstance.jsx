@@ -31,7 +31,7 @@ function SubNetworkNodeInstance({ data, isConnectable }) {
           position={Position.Top}
           style={{ ...DEFAULT_HANDLE_STYLE, left: "50%", background: "blue" }}
           isConnectable={isConnectable}
-          onConnect={(params) => console.log("handle onConnect", params)}
+          onConnect={(params) =>  console.log("handle onConnect", params)}
         />
      
       </Paper>

@@ -15,7 +15,7 @@ const dragHandleStyle = {
   borderRadius: '50%',
 };
 
-const onConnect = (params) => console.log('handle onConnect', params);
+const onConnect = (params) => // console.log('handle onConnect', params);
 
 function DragHandleNode() {
   return (

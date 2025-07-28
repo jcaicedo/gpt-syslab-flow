@@ -8,7 +8,7 @@ const SidebarFlow = () => {
         event.dataTransfer.setData("application/reactflow", nodeType)
         event.dataTransfer.effectAllowed = "move"
     }
-    // console.log(onDragStart);
+    // // console.log(onDragStart);
 
     return (
         <Box sx={{ mt: 2 }}>

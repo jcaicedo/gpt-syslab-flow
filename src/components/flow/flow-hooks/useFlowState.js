@@ -7,7 +7,7 @@ export function useFlowState() {
     const connectionCreated = useRef(false)
 
     const isValidConnection = useCallback((connection, nodes) => {
-        console.log("isValidConnection");
+        // // // console.log("isValidConnection");
 
         const { source, target } = connection;
         const sourceNode = nodes.find(node => node.id === source);
@@ -37,13 +37,13 @@ export function useFlowState() {
     }, [])
 
     const onConnectStart = useCallback(() => {
-        console.log("onConnectStart");
+        // // // console.log("onConnectStart");
         connectionCreated.current = false;
     }, []);
 
     const onConnect = useCallback(
         (params, setEdges) => {
-            console.log("llego");
+            // // // console.log("llego");
             if (connectionCreated.current) {
                 setEdges((eds) => addEdge(params, eds));
             }

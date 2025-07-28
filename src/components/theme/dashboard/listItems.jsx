@@ -56,7 +56,7 @@ export const MainListItems = () => {
 
 export const SecondaryListItems = () => {
   const { user } = useAuth()
-  console.log("RoleUSer: ", user.role);
+  // console.log("RoleUSer: ", user.role);
 
   return (
     <React.Fragment >

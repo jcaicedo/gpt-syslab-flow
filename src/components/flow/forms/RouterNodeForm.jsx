@@ -19,10 +19,10 @@ const RouterNodeForm = ({ nodeData, onSave, deleteNode, cidrBlockVPC }) => {
 
     const [openModalRouteTable, setOpenModalRouteTable] = useState(false)
     const validationSchema = useFormValidationSchema(TYPE_ROUTER_NODE, cidrBlockVPC)
-    console.log("NODES ROUTE NODE FORM: ", nodes);
-    console.log("NODES ROUTE EDGE FORM: ", edges);
+    // console.log("NODES ROUTE NODE FORM: ", nodes);
+    // console.log("NODES ROUTE EDGE FORM: ", edges);
     
-    console.log("RouterNodeForm: cidrBlockVPC->", cidrBlockVPC);
+    // console.log("RouterNodeForm: cidrBlockVPC->", cidrBlockVPC);
 
     const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm({
         resolver: yupResolver(validationSchema),
@@ -52,7 +52,7 @@ const RouterNodeForm = ({ nodeData, onSave, deleteNode, cidrBlockVPC }) => {
         onSave(data)
     }
     const handleClickOpenRouteTableForm = () => {
-        console.log("hoal");
+        // console.log("hoal");
         setOpenModalRouteTable(!openModalRouteTable)
     }
 

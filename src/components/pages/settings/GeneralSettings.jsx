@@ -21,12 +21,12 @@ const GeneralSettings = () => {
 
         if (userSnap.exists()) {
           const userData = userSnap.data()
-          console.log("User data:", userData)
+          // console.log("User data:", userData)
 
           // Pre-llenamos los valores en el formulario
           setValue("url_api_aws", userData.settings?.general?.url_api_aws || "")
         } else {
-          console.log("El documento no existe");
+          // console.log("El documento no existe");
         }
       }
     }
@@ -35,14 +35,14 @@ const GeneralSettings = () => {
   }, [user, setValue])
 
   const handleOnSubmitSettings = async (data) => {
-    console.log(data);
-    console.log(user);
+    // console.log(data);
+    // console.log(user);
 
     const userRef = doc(db, DB_FIRESTORE_USERS, user.userId)
     const userSnap = await getDoc(userRef)
 
     if (userSnap.exists()) {
-      console.log('User data: ', userSnap.data());
+      // console.log('User data: ', userSnap.data());
 
       await updateDoc(userRef, {
         settings: {
@@ -53,10 +53,10 @@ const GeneralSettings = () => {
       })
 
     } else {
-      console.log("El documento no existe");
+      // console.log("El documento no existe");
     }
 
-    console.log(userSnap.data());
+    // console.log(userSnap.data());
 
 
 

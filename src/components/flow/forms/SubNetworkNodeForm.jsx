@@ -27,7 +27,7 @@ const SubNetworkNodeForm = ({ nodeData, onSave, deleteNode, cidrBlockVPC }) => {
 
 
     useEffect(() => {
-        console.log("CIDRs existentes en context:", existingCidrs);
+        // console.log("CIDRs existentes en context:", existingCidrs);
     }, []);
 
 
@@ -45,11 +45,11 @@ const SubNetworkNodeForm = ({ nodeData, onSave, deleteNode, cidrBlockVPC }) => {
 
 
     useEffect(() => {
-        console.log("Errores del formulario:", errors);
+        // console.log("Errores del formulario:", errors);
     }, [errors]);
 
     const onSubmit = (data) => {
-        console.log("Datos enviados:", data);
+        // console.log("Datos enviados:", data);
         onSave(data);
     };
 

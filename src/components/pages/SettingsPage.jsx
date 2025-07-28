@@ -49,7 +49,7 @@ const SettingsPage = () => {
             const amiListResponse = amiListSnapshot.docs.map(doc => ({
                 id: doc.id, ...doc.data()
             }))
-            console.log("amiListResponse: ", amiListResponse);
+            // console.log("amiListResponse: ", amiListResponse);
 
             setAmilist(amiListResponse)
         } catch (error) {
@@ -77,7 +77,7 @@ const SettingsPage = () => {
             fetchAmiList() //Reload list after add the new AMI
 
         } catch (error) {
-            console.log("Error adding new AMI: ", error);
+            // console.log("Error adding new AMI: ", error);
 
         } finally {
 

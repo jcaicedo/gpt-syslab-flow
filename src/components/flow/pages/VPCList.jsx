@@ -27,7 +27,7 @@ const useFetchVPCs = (setLoadingFlow) => {
 
     const fetchVPCs = useCallback(async () => {
         setLoadingFlow(true)
-        console.log("user:", user);
+        // console.log("user:", user);
         try {
             let vpcList = []
             if (role === USER_ROL_STUDENT) {
@@ -42,7 +42,7 @@ const useFetchVPCs = (setLoadingFlow) => {
 
 
         } catch (error) {
-            console.log("Error fetching VPCs: ", error);
+            // console.log("Error fetching VPCs: ", error);
 
         } finally {
             setLoadingFlow(false)

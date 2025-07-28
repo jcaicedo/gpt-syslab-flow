@@ -72,7 +72,7 @@ const useDeployNetwork = ({ nodes, edges }) => {
     }
 
 
-    console.log("prefixLength", prefixLength);
+    // console.log("prefixLength", prefixLength);
 
     const vpc = {
       name: "awsdevvpc",
@@ -94,7 +94,7 @@ const useDeployNetwork = ({ nodes, edges }) => {
 
 
       const routeEntries = routerNode.data?.routeTable || [];
-      console.log("routerNode routeTable:", routeEntries);
+      // console.log("routerNode routeTable:", routeEntries);
       const validRoutes = [];
 
       routeEntries.forEach((route, i) => {

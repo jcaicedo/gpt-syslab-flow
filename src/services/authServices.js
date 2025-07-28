@@ -32,7 +32,7 @@ export const useUserRegistration = (userId) => {
             try {
                 const userRef = doc(db, DB_FIRESTORE_USERS, userId)
                 const userSnap = await getDoc(userRef)
-                console.log("isLinkValid2: ",isLinkValid);
+                // console.log("isLinkValid2: ",isLinkValid);
                 
                 if (userSnap.exists()) {
                     const userData = userSnap.data()
@@ -93,7 +93,7 @@ export const useUserRegistration = (userId) => {
 
         } catch (error) {
             setError("Error al validar el email del usuario.");
-            console.log(error);
+            // console.log(error);
 
 
         }

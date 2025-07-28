@@ -63,7 +63,7 @@ export const UsersManagement = () => {
 
     //             if (selectedUser) {
     //                 //Update only the status of user selected
-    //                 console.log("handleModalLayoutUsersManagementClose: ", data);
+    //                 // console.log("handleModalLayoutUsersManagementClose: ", data);
 
     //                 await updateDoc(doc(db, DB_FIRESTORE_USERS, selectedUser.id),
     //                     {
@@ -98,11 +98,11 @@ export const UsersManagement = () => {
 
 
     //         } catch (error) {
-    //             console.log("Error fetiching User: ", error);
+    //             // console.log("Error fetiching User: ", error);
 
     //         } finally {
     //             setLoadingFlow(false)
-    //             console.log(usersList);
+    //             // console.log(usersList);
 
     //         }
 
@@ -121,7 +121,7 @@ export const UsersManagement = () => {
 
     // const handleEditUserRegister = (user) => {
     //     setSelectedUser(user)
-    //     console.log(user.id);
+    //     // console.log(user.id);
     //     setIsCreateModalLayoutOpen(true);
 
     // }

@@ -43,7 +43,7 @@ const InstanceNodeForm = ({ nodeData, onSave, amiList, deleteNode, cidrBlockVPC 
     });
 
     const onSubmit = (data) => {
-        console.log(data);
+        // console.log(data);
         onSave(data);
     };
 

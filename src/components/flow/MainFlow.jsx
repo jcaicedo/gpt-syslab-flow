@@ -77,6 +77,8 @@ import getNodeTitle from "./utils/getNodeTitle";
 import { LoadingFlowContext } from "../../contexts/LoadingFlowContext";
 import { useContext } from "react";
 import { useRestrictSubnetsInsideVPC } from "./flow-hooks/useRestrictSubnetsInsideVPC";
+import useHandleDrop from "./flow-hooks/useHandleDrop";
+import useRestrictMovement from "./flow-hooks/useRestrictMovement";
 
 
 
@@ -171,6 +173,8 @@ function MainFlow() {
 
     const [openRouteTableFullScreen, setOpenRouteTableFullScreen] = useState(false);
 
+  const { onDrop } = useHandleDrop(reactFlowInstance, setNodes);
+  const { onNodeDragStop } = useRestrictMovement(reactFlowInstance, setNodes);
 
     // const [vpcData, setVPCData] = useState(null);
 
@@ -218,10 +222,10 @@ function MainFlow() {
 
         setNodes((nds) => {
             const nodeToDelete = nds.find((node) => node.id === clickedNodeId);
-            console.log("nodeToDelete: ", nodeToDelete.type);
+            // console.log("nodeToDelete: ", nodeToDelete.type);
 
             if (!nodeToDelete) {
-                console.log("Node not found");
+                // console.log("Node not found");
                 return nds;
             }
 
@@ -263,170 +267,15 @@ function MainFlow() {
 
 
         // setNodes((nds) => nds.filter((node) => node.id !== clickedNodeId))
-        // console.log(`Node with ID: ${clickedNodeId} has been deleted`);
+        // // console.log(`Node with ID: ${clickedNodeId} has been deleted`);
         closeModal()
 
     }
 
-    const getRandomColorNode = () => {
-        const randomIndex = Math.floor(Math.random() * colorsBgSubnetworksNodes.length);
-        return colorsBgSubnetworksNodes[randomIndex]
-    }
-
-    //Función activada cuando agrega un nuevo elemento desde el drag an drop
-    const onDrop = useCallback(
-        (event) => {
-            event.preventDefault();
-
-            const type = event.dataTransfer.getData("application/reactflow");
-
-            if (!type) return;
-
-            const position = reactFlowInstance.screenToFlowPosition({
-                x: event.clientX,
-                y: event.clientY,
-            });
-
-            console.log('Type:', type);
-
-            let widthCurrent = widthDefaultInstanceNode;
-            let heightCurrent = heightDefaultInstanceNode;
-
-            if (type === TYPE_ROUTER_NODE) {
-                widthCurrent = widthDefaultInstanceRouter;
-                heightCurrent = heightDefaultInstanceRouter;
-
-            } else {
-                widthCurrent = restrictedNodes.includes(type)
-                    ? widthDefaultInstanceNode
-                    : widthDefaultSubNetworkNode;
-                heightCurrent = restrictedNodes.includes(type)
-                    ? heightDefaultInstanceNode
-                    : heightDefaultSubNetworkNode;
-            }
-
-
-            const bgNode = restrictedNodes.includes(type) || type === TYPE_ROUTER_NODE
-                ? colorBgInstanceNode
-                : getRandomColorNode();
-
-            const centerPositionBound = {
-                x: position.x + widthCurrent / 2,
-                y: position.y + heightCurrent / 2,
-            };
-
-
-            const new_id = getId.nextId();
-
-            let newNode = {
-                id: new_id,
-                type,
-                position,  // Posición global inicial
-                data: {
-                    label: `${type + new_id} node`,
-                    title: getNodeTitle({ type }),
-                    bgNode,
-                },
-                style: {
-                    width: widthCurrent,
-                    height: heightCurrent,
-                },
-            };
-
-            const nodes = reactFlowInstance.getNodes();
-
-            // const existsRouterNode = nodes.some((node) => node.type === TYPE_ROUTER_NODE);
-
-            // if (existsRouterNode && type === TYPE_ROUTER_NODE) {
-            //     alert('There must be only one router instance')
-            //     return
-            // }
-
-
-            // 1️⃣ REGLA: Subnet solo puede ser creada dentro de un VPC
-            if (type === TYPE_SUBNETWORK_NODE) {
-                const vpcNode = nodes.find(node =>
-                    node.type === TYPE_VPC_NODE &&
-                    centerPositionBound.x > node.position.x &&
-                    centerPositionBound.x < node.position.x + (node.style.width || node.width) &&
-                    centerPositionBound.y > node.position.y &&
-                    centerPositionBound.y < node.position.y + (node.style.height || node.height)
-                )
-
-                if (!vpcNode) {
-                    alert('Las Subnets solo pueden ser creadas dentro de un nodo VPC.');
-                    return;
-                }
-
-
-                //Ajusta la posicion relativa al VPC y establece el nodo padre
-                const relativeX = position.x - vpcNode.position.x;
-                const relativeY = position.y - vpcNode.position.y;
-
-                newNode = {
-                    ...newNode,
-                    parentId: vpcNode.id,  // Establece el VPC como nodo padre
-                    position: {
-                        x: relativeX,
-                        y: relativeY,
-                    },
-                    extent: 'parent', // Indica que es un nodo hijo de un VPC
-                };
-            }
-
-            // 2️⃣ REGLA: Instancias solo pueden ser creadas dentro de una Subnet
-
-
-
-
-
-            // Si es un nodo restringido, comprobar si se debe colocar dentro de un subnetwork
-            if (restrictedNodes.includes(type) && type !== TYPE_SUBNETWORK_NODE) {
-
-                const subnetNode = nodes.find(node =>
-                    node.type === TYPE_SUBNETWORK_NODE &&
-                    centerPositionBound.x > node.position.x &&
-                    centerPositionBound.x < node.position.x + (node.style.width || node.width) &&
-                    centerPositionBound.y > node.position.y &&
-                    centerPositionBound.y < node.position.y + (node.style.height || node.height)
-
-                )
-
-                if (!subnetNode) {
-                    alert('Las instancias solo pueden ser creadas dentro de una Subnet.');
-                    return;
-                }
-
-                // Ajusta la posición relativa a la Subnet y define parentNode
-                const relativeX = position.x - subnetNode.position.x;
-                const relativeY = position.y - subnetNode.position.y;
-                newNode = {
-                    ...newNode,
-                    parentNode: subnetNode.id,
-                    position: {
-                        x: relativeX,
-                        y: relativeY,
-                    },
-                    extent: 'parent',
-                };
-
-            }
-
-            // 3️⃣ Agrega el nodo al estado solo si pasó las validaciones
-
-            setNodes((nds) => nds.concat(newNode));
-
-            console.log('Updated nodes list:', reactFlowInstance.getNodes());
-        },
-        [reactFlowInstance]
-    );
-
-
-
 
     const onNodeDragStart = useNodeDragStart({ dragRef });
     const onNodeDrag = useNodeDrag({ nodes, setTarget, TYPE_SUBNETWORK_NODE });
-    const onNodeDragStop = useNodeDragStop({ nodes, setNodes, reactFlow, TYPE_SUBNETWORK_NODE, TYPE_VPC_NODE });
+    //const onNodeDragStop = useNodeDragStop({ nodes, setNodes, reactFlow, TYPE_SUBNETWORK_NODE, TYPE_VPC_NODE });
     const onSaveFlow = useSaveFlow({ reactFlowInstance, flowKey, vpcid });
     const onRestoreFlow = useRestoreFlow({ setNodes, setEdges, setViewport, flowKey, getId });
 
@@ -445,8 +294,8 @@ function MainFlow() {
 
 
         return () => {
-            console.log("nodes useffect", nodes);
-            console.log("cidrBlockVPC: ", cidrBlockVPC);
+            // console.log("nodes useffect", nodes);
+            // console.log("cidrBlockVPC: ", cidrBlockVPC);
 
 
         }
@@ -454,7 +303,7 @@ function MainFlow() {
 
     useEffect(() => {
         if (restorationDone) {
-            console.log("✅ CIDR restaurado:", cidrBlockVPC, prefixLength);
+            // console.log("✅ CIDR restaurado:", cidrBlockVPC, prefixLength);
         }
     }, [restorationDone, cidrBlockVPC, prefixLength]);
 
@@ -467,7 +316,7 @@ function MainFlow() {
             const amiListResponse = amiListSnapshot.docs.map(doc => ({
                 id: doc.id, ...doc.data()
             }))
-            console.log("amiListResponse: ", amiListResponse);
+            // console.log("amiListResponse: ", amiListResponse);
 
             setAmiList(amiListResponse)
         } catch (error) {
@@ -488,7 +337,7 @@ function MainFlow() {
     useEffect(() => {
         setNodes((nds) => nds.map((node) => {
 
-            console.log("Clicked Node ID in MainFlow:", clickedNodeId);
+            // console.log("Clicked Node ID in MainFlow:", clickedNodeId);
             if (node.id === clickedNodeId) {
                 return {
                     ...node,
@@ -555,7 +404,7 @@ function MainFlow() {
                             onDrop={onDrop}
                             onNodeDragStart={onNodeDragStart}
                             onNodeDrag={onNodeDrag}
-                            //onNodeDragStop={onNodeDragStop}
+                            onNodeDragStop={onNodeDragStop}
                             onDragOver={onDragOver}
                             snapToGrid
                             onConnectStart={onConnectStart}

@@ -25,7 +25,7 @@ function VPCNodeInstance({ data, isConnectable }) {
                 position={Position.Top}
                 style={{ width: 30, height: 30, top: -5, left: '50%', background: 'green' }}
                 isConnectable={isConnectable}
-                onConnect={(params) => console.log("handle VPC onConnect", params)}
+                onConnect={(params) =>  console.log("handle VPC onConnect", params)}
             />
         </Paper>
     )

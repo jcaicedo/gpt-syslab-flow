@@ -25,7 +25,7 @@ const CreateVPCModal = ({ open, onClose }) => {
     const userId= user.userId
 
     const handleCreateVPC = async (vpcData) => {
-       console.log("loadingFlow",loadingFlow);
+       // console.log("loadingFlow",loadingFlow);
        
         setLoadingFlow(true)
         const {vpcName,cloudProvider, cidrBlock, prefixLength} = vpcData
@@ -42,11 +42,11 @@ const CreateVPCModal = ({ open, onClose }) => {
                 })
                 onClose(vpcDoc.id, cidrBlock, prefixLength)
             } catch (error) {
-                console.log(error);
+                // console.log(error);
             }
             
         }else{
-            console.log("Error: Missing VPC name or cloud type")
+            // console.log("Error: Missing VPC name or cloud type")
         }
     }
 

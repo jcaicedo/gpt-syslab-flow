@@ -13,7 +13,7 @@ import useCidrBlockVPCStore from '../store/cidrBlocksIp'
 
 const fetchFlowFromFirebase = async (vpcid) => {
     try {
-        console.log("fetchFlowFromFirebase: ", vpcid);
+        // console.log("fetchFlowFromFirebase: ", vpcid);
 
         const vpcDoc = doc(db, FIRESTORE_COLLECTION, vpcid)
         const vpcSnapshot = await getDoc(vpcDoc)
@@ -22,7 +22,7 @@ const fetchFlowFromFirebase = async (vpcid) => {
             console.warn(`${NO_DOC_WARNING} ${vpcid}`);
             return null
         }
-        console.log("vpcSnapshot", vpcSnapshot);
+        // console.log("vpcSnapshot", vpcSnapshot);
 
         return vpcSnapshot.data()
 
@@ -47,7 +47,7 @@ const saveFlowToLocalStorage = (key, flow) => {
 const loadFlowFromLocalStorage = (key) => {
     try {
         const flow = JSON.parse(localStorage.getItem(key))
-        console.log("loadFlowFromLocalStorage: ", flow);
+        // console.log("loadFlowFromLocalStorage: ", flow);
 
         return flow
     } catch (error) {
@@ -72,12 +72,12 @@ const convertToDate = (expiration) => {
 }
 
 const useRestoreFlow = ({ setNodes, setEdges, setViewport, flowKey, getId }) => {
-    console.log("ONRESTORE");
+    // console.log("ONRESTORE");
 
 
 
     const { vpcid } = useParams()
-    console.log("VPCID: ", vpcid);
+    // console.log("VPCID: ", vpcid);
 
     const { setCidrBlockVPC, setPrefixLength } = useCidrBlockVPCStore();
 
@@ -88,17 +88,17 @@ const useRestoreFlow = ({ setNodes, setEdges, setViewport, flowKey, getId }) => 
         setLoadingFlow(true)
 
         let flow = loadFlowFromLocalStorage(flowKey)
-        console.log("let flow = loadFlowFromLocalStorage(flowKey): ", flow);
+        // console.log("let flow = loadFlowFromLocalStorage(flowKey): ", flow);
 
         if (!flow || flow.id !== vpcid) {
-            console.log("aqui 2");
+            // console.log("aqui 2");
             const fetchedFlow = await fetchFlowFromFirebase(vpcid)
-            console.log("fetchedFlow: ", fetchedFlow);
+            // console.log("fetchedFlow: ", fetchedFlow);
 
 
             if (fetchedFlow && fetchedFlow.flow) {
-                console.log("SAVING.......");
-                console.log(fetchedFlow.flow);
+                // console.log("SAVING.......");
+                // console.log(fetchedFlow.flow);
 
                 flow = fetchedFlow.flow
                 setCidrBlockVPC(fetchedFlow.cidrBlock)
@@ -114,7 +114,7 @@ const useRestoreFlow = ({ setNodes, setEdges, setViewport, flowKey, getId }) => 
         }
 
         if (flow) {
-            console.log("flowRestore", flow);
+            // console.log("flowRestore", flow);
             setCidrBlockVPC(flow.cidrBlock)
             setPrefixLength(flow.prefixLength || '')
             const { expiration, nodes = [], edges = [], viewport = {} } = flow

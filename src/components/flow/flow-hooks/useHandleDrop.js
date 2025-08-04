@@ -55,14 +55,24 @@ export default function useHandleDrop(reactFlowInstance, setNodes) {
       }
 
       if (type === TYPE_SUBNETWORK_NODE) {
-        const parent = all.find(n =>
-          n.type === TYPE_VPC_NODE &&
-          center.x > n.position.x && center.x < n.position.x + (n.width || n.style?.width) &&
-          center.y > n.position.y && center.y < n.position.y + (n.height || n.style?.height)
-        );
+        const parent = all.find(n => {
+          if (n.type !== TYPE_VPC_NODE) return false;
+          const { x: px, y: py } = n.position;
+          const pw = n.width || n.style?.width;
+          const ph = n.height || n.style?.height;
+          return center.x > px && center.x < px + pw && center.y > py && center.y < py + ph;
+        });
         if (!parent) return;
-        newNode = { ...newNode, parentId: parent.id, position: { x: position.x - parent.position.x, y: position.y - parent.position.y }, extent: 'parent' };
-        setNodes(nds => [...nds, newNode]); return;
+        const { x: px, y: py } = parent.position;
+        newNode = {
+          ...newNode,
+          parentId: parent.id,
+          parentNode: parent.id,
+          position: { x: position.x - px, y: position.y - py },
+          extent: 'parent'
+        };
+        setNodes(nds => [...nds, newNode]);
+        return;
       }
 
       if (type === TYPE_ROUTER_NODE) {
@@ -75,18 +85,29 @@ export default function useHandleDrop(reactFlowInstance, setNodes) {
       }
 
       if (restrictedNodes.includes(type)) {
-        const subnet = all.find(n =>
-          n.type === TYPE_SUBNETWORK_NODE &&
-          center.x > n.position.x && center.x < n.position.x + (n.width || n.style?.width) &&
-          center.y > n.position.y && center.y < n.position.y + (n.height || n.style?.height)
-        );
+        const subnet = all.find(n => {
+          if (n.type !== TYPE_SUBNETWORK_NODE) return false;
+          const parent = all.find(p => p.id === (n.parentNode || n.parentId));
+          if (!parent) return false;
+          const sx = parent.position.x + n.position.x;
+          const sy = parent.position.y + n.position.y;
+          const sw = n.width || n.style?.width;
+          const sh = n.height || n.style?.height;
+          return center.x > sx && center.x < sx + sw && center.y > sy && center.y < sy + sh;
+        });
         if (!subnet) return;
+        const parent = all.find(p => p.id === (subnet.parentNode || subnet.parentId));
+        const sx = parent.position.x + subnet.position.x;
+        const sy = parent.position.y + subnet.position.y;
         newNode = {
-          ...newNode, parentId: subnet.id,
-          position: { x: position.x - subnet.position.x, y: position.y - subnet.position.y },
+          ...newNode,
+          parentId: subnet.id,
+          parentNode: subnet.id,
+          position: { x: position.x - sx, y: position.y - sy },
           extent: 'parent'
         };
-        setNodes(nds => [...nds, newNode]); return;
+        setNodes(nds => [...nds, newNode]);
+        return;
       }
     }, [reactFlowInstance, setNodes])
   };

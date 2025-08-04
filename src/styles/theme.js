@@ -13,6 +13,9 @@ export const darkTheme = createTheme({
             default: '#ffffff'
         }
     },
+    shape: {
+        borderRadius: 0,
+    },
     components: {
         MuiToolbar: {
             styleOverrides: {
@@ -32,10 +35,30 @@ export const darkTheme = createTheme({
                 }
             }
         },
+        MuiAppBar: {
+            defaultProps: {
+                square: false,
+            },
+            styleOverrides: {
+                root: {
+                    backgroundColor: '#233044',
+                    color: '#ffffff',
+                },
+            },
+        },
+        MuiDrawer: {
+            styleOverrides: {
+                paper: {
+                    backgroundColor: '#233044',
+                    color: '#ffffff',
+                },
+            },
+        },
         MuiPaper: {
             styleOverrides: {
                 root: {
                     backgroundColor: '#ffffff',
+                    borderRadius: 0,
                 }
             },
             variants:[
@@ -43,8 +66,7 @@ export const darkTheme = createTheme({
                     props:{variant:'lightPaper'},
                     style:{
                         backgroundColor:'#ffffff',
-                        boxShadow:'rgba(0, 0, 0, 0.04) 0px 5px 22px 0px, rgba(0, 0, 0, 0.06) 0px 0px 0px 1px',
-                        borderRadius:'20px'
+                        boxShadow:'rgba(0, 0, 0, 0.04) 0px 5px 22px 0px, rgba(0, 0, 0, 0.06) 0px 0px 0px 1px'
                     }
                 }
             ]
@@ -84,5 +106,8 @@ export const lightTheme = createTheme({
         background: {
             default: '#fafafa',
         },
+    },
+    shape: {
+        borderRadius: 0,
     },
 })

@@ -112,7 +112,7 @@ function MainLayout() {
                             }}
                             PaperProps={{
                                 sx: {
-                                    borderRadius: '8px',
+                                    borderRadius: 0,
                                     backgroundColor: '#233044',
                                     color: '#ffffff',
                                     padding: '10px',
@@ -184,7 +184,7 @@ function MainLayout() {
                         margin: 'auto',
                         backgroundColor: '#233044',
                         color: '#ffffff',
-                        borderRadius: '0 0 16px 16px',
+                        borderRadius: 0,
                     }}
                     startIcon={<LogoutIcon />}
                     onClick={() => {

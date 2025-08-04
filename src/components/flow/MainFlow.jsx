@@ -39,6 +39,8 @@ import useRestoreFlow from './flow-hooks/useRestoreFlow';
 import useSaveFlow from './flow-hooks/useSaveFlow';
 import InstanceNodeForm from './forms/InstanceNodeForm';
 import SubNetworkNodeForm from './forms/SubNetworkNodeForm';
+import RouterNodeForm from './forms/RouterNodeForm';
+import VPCNodeForm from './forms/VPCNodeForm';
 import InstanceNode from "./node-types/InstanceNode";
 import RouterNodeInstance from "./node-types/RouterNodeInstance";
 import VPCNodeInstance from "./node-types/VPCNodeInstance";
@@ -95,7 +97,7 @@ const nodeTypes = {
 }
 
 
-const restrictedNodes = [TYPE_DEFAULT_NODE, TYPE_COMPUTER_NODE, TYPE_PRINTER_NODE, TYPE_SERVER_NODE, TYPE_SUBNETWORK_NODE]
+const restrictedNodes = [TYPE_DEFAULT_NODE, TYPE_COMPUTER_NODE, TYPE_PRINTER_NODE, TYPE_SERVER_NODE]
 
 
 const makeRandomId = (length) => {
@@ -480,9 +482,12 @@ function MainFlow() {
                         {selectedNode && selectedNode.type === TYPE_SUBNETWORK_NODE && (
                             <SubNetworkNodeForm nodeData={selectedNode.data} onSave={saveNodeData} cidrBlockVPC={cidrBlockVPC} deleteNode={deleteNodeInstance} />
                         )}
-                        {/* {selectedNode && selectedNode.type === TYPE_ROUTER_NODE && (
+                        {selectedNode && selectedNode.type === TYPE_ROUTER_NODE && (
                             <RouterNodeForm nodeData={selectedNode.data} onSave={saveNodeData} cidrBlockVPC={cidrBlockVPC} deleteNode={deleteNodeInstance} />
-                        )} */}
+                        )}
+                        {selectedNode && selectedNode.type === TYPE_VPC_NODE && (
+                            <VPCNodeForm nodeData={selectedNode.data} onSave={saveNodeData} deleteNode={deleteNodeInstance} />
+                        )}
 
 
                     </Box>

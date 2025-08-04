@@ -6,7 +6,7 @@ import PanelAdmin from '../pages/PanelAdmin';
 import { ReactFlowProvider } from "@xyflow/react";
 import MainLayout from '../layout/MainLayout';
 import { Navigate } from 'react-router-dom';
-import VPCList from '../flow/pages/VPCList';
+import VPCNew from '../flow/pages/VPCNew';
 import { LoadingFlowProvider } from '../../contexts/LoadingFlowContext';
 import LoadingFlow from './LoadingFlow';
 import SettingsPage from '../pages/SettingsPage';
@@ -66,7 +66,7 @@ const DashboardRoutes = () => {
                     <Route path='vpcs' element={
                         <>
                             <LoadingFlow />
-                            <VPCList />
+                            <VPCNew />
                         </>
                     } />
 

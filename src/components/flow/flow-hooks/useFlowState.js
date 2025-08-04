@@ -7,31 +7,30 @@ export function useFlowState() {
     const connectionCreated = useRef(false)
 
     const isValidConnection = useCallback((connection, nodes) => {
-        // // // console.log("isValidConnection");
 
         const { source, target } = connection;
         const sourceNode = nodes.find(node => node.id === source);
         const targetNode = nodes.find(node => node.id === target);
-      //  connectionCreated.current = false;
         if (!sourceNode || !targetNode) {
             return false;
         }
-        if (source.type === TYPE_ROUTER_NODE && (sourceNode.disabled || targetNode.disabled)) {
+
+        if (sourceNode.type === TYPE_SUBNETWORK_NODE || targetNode.type === TYPE_SUBNETWORK_NODE) {
+            return false;
+        }
+
+        if (sourceNode.type === TYPE_ROUTER_NODE && (sourceNode.disabled || targetNode.disabled)) {
             return false; // No permitir conexiones con nodos deshabilitados
         }
+
         // Verificar si están dentro del mismo nodo de subnetwork
         const isSameParent = sourceNode.parentNode === targetNode.parentNode;
-        // Verificar si la conexión es entre un nodo subnetwork y un nodo router
-        const isSubnetworkToRouterConnection = (sourceNode.type === TYPE_SUBNETWORK_NODE && targetNode.type === TYPE_ROUTER_NODE) ||
-            (sourceNode.type === TYPE_ROUTER_NODE && targetNode.type === TYPE_SUBNETWORK_NODE);
 
-        const isValid = isSameParent || isSubnetworkToRouterConnection;
-
-        if (isValid) {
+        if (isSameParent) {
             connectionCreated.current = true;
         }
 
-        return isValid;
+        return isSameParent;
 
 
     }, [])

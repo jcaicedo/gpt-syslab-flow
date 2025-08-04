@@ -59,6 +59,7 @@ export const darkTheme = createTheme({
                 root: {
                     backgroundColor: '#ffffff',
                     borderRadius: 0,
+
                 }
             },
             variants:[
@@ -76,7 +77,8 @@ export const darkTheme = createTheme({
                 {
                     props:{variant:'whiteStyle'},
                     style:{
-                        color:'#ffffff'
+                        color:'#ffffff',
+                        borderRadius:'8px'
                     }
                 }
             ]
@@ -107,7 +109,9 @@ export const lightTheme = createTheme({
             default: '#fafafa',
         },
     },
+
     shape: {
         borderRadius: 0,
     },
+
 })

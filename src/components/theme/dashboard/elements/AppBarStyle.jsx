@@ -13,6 +13,7 @@ export const AppBarStyle = styled(MuiAppBar, {
     }),
     backgroundColor: '#233044',
     color: '#ffffff',
+
     ...(open && {
         marginLeft: DRAWERWITH,
         width: `calc(100% - ${DRAWERWITH}px)`,

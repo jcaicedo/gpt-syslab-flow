@@ -17,6 +17,7 @@ export const DrawerStyle = styled(MuiDrawer, { shouldForwardProp: (prop) => prop
             boxSizing: 'border-box',
             backgroundColor: '#233044',
             color: '#ffffff',
+          
             ...(!open && {
                 overflowX: 'hidden',
                 transition: theme.transitions.create('width', {

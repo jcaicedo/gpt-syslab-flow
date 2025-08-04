@@ -1,13 +1,13 @@
-import { Badge, Box, CssBaseline, IconButton, Toolbar, Typography, Divider, List, Tooltip, Avatar, Menu, MenuItem } from '@mui/material'
-import '../../App.css'
-import { useState } from 'react'
+import { Badge, Box, CssBaseline, IconButton, Toolbar, Typography, Divider, List, Tooltip, Avatar, Menu, MenuItem } from '@mui/material';
+import '../../App.css';
+import { useState } from 'react';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import MenuIcon from '@mui/icons-material/Menu';
 import LogoutIcon from '@mui/icons-material/Logout';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
-import { MainListItems, SecondaryListItems } from '../../components/theme/dashboard/listItems.jsx'
-import { AppBarStyle } from '../../components/theme/dashboard/elements/AppBarStyle.jsx'
-import { DrawerStyle } from '../../components/theme/dashboard/elements/DrawerStyle.jsx'
+import { MainListItems, SecondaryListItems } from '../../components/theme/dashboard/listItems.jsx';
+import { AppBarStyle } from '../../components/theme/dashboard/elements/AppBarStyle.jsx';
+import { DrawerStyle } from '../../components/theme/dashboard/elements/DrawerStyle.jsx';
 import { useAuth } from '../../contexts/AuthContext.jsx';
 import Button from '@mui/material/Button';
 import { Outlet } from 'react-router-dom';
@@ -20,9 +20,9 @@ const settings = [
 ];
 
 function MainLayout() {
-    const [open, setOpen] = useState(true)
-    const [anchorElUser, setAnchorElUser] = useState(null)
-    const { user, logout } = useAuth()
+    const [open, setOpen] = useState(true);
+    const [anchorElUser, setAnchorElUser] = useState(null);
+    const { user, logout } = useAuth();
 
     const toggleDrawer = () => {
         setOpen(!open);
@@ -32,8 +32,8 @@ function MainLayout() {
 
 
     const handleOpenUserMenu = (event) => {
-        setAnchorElUser(event.currentTarget)
-    }
+        setAnchorElUser(event.currentTarget);
+    };
 
     const handleCloseUserMenu = () => {
         setAnchorElUser(null);
@@ -91,8 +91,7 @@ function MainLayout() {
                             </Badge>
                         </IconButton>
 
-                        <Tooltip title="Open settings"
-                        >
+                        <Tooltip title="Open settings">
                             <IconButton
                                 size="large"
                                 edge="end"
@@ -108,15 +107,15 @@ function MainLayout() {
                             </IconButton>
                         </Tooltip>
                         <Menu
-                            sx={{ 
+                            sx={{
                                 mt: '45px',
-                             }}
-                             PaperProps={{
+                            }}
+                            PaperProps={{
                                 sx: {
-                                    borderRadius: '8px', // Ejemplo: cambiar border-radius
-                                    backgroundColor: '#f0f0f0', // Fondo
-
-                                    padding: '10px', // Espaciado
+                                    borderRadius: '8px',
+                                    backgroundColor: '#233044',
+                                    color: '#ffffff',
+                                    padding: '10px',
                                 },
                             }}
                             id="menu-appbar"
@@ -150,7 +149,7 @@ function MainLayout() {
                                 key="logoutformavatar"
                                 onClick={() => logout()}
                             >
-                                <Typography sx={{ textAlign: 'center' }}>Logout0</Typography>
+                                <Typography sx={{ textAlign: 'center' }}>Logout</Typography>
                             </MenuItem>
 
                         </Menu>
@@ -185,6 +184,7 @@ function MainLayout() {
                         margin: 'auto',
                         backgroundColor: '#233044',
                         color: '#ffffff',
+                        borderRadius: '0 0 16px 16px',
                     }}
                     startIcon={<LogoutIcon />}
                     onClick={() => {
@@ -222,4 +222,5 @@ function MainLayout() {
     )
 }
 
-export default MainLayout
+export default MainLayout;
+

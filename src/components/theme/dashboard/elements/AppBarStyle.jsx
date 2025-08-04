@@ -11,6 +11,9 @@ export const AppBarStyle = styled(MuiAppBar, {
         easing: theme.transitions.easing.sharp,
         duration: theme.transitions.duration.leavingScreen,
     }),
+    backgroundColor: '#233044',
+    color: '#ffffff',
+    borderRadius: '0 0 16px 16px',
     ...(open && {
         marginLeft: DRAWERWITH,
         width: `calc(100% - ${DRAWERWITH}px)`,

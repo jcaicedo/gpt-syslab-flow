@@ -6,7 +6,8 @@ import {
   widthDefaultVPCNode, heightDefaultVPCNode,
   widthDefaultSubNetworkNode, heightDefaultSubNetworkNode,
   widthDefaultInstanceNode, heightDefaultInstanceNode,
-  colorBgInstanceNode, colorsBgSubnetworksNodes
+  colorBgInstanceNode, colorsBgSubnetworksNodes,
+  TYPE_ROUTER_NODE
 } from '../utils/constants';
 import getNodeTitle from '../utils/getNodeTitle';
 
@@ -14,7 +15,7 @@ const getRandomColor = () => colorsBgSubnetworksNodes[
   Math.floor(Math.random() * colorsBgSubnetworksNodes.length)
 ];
 
-const makeId = () => Math.random().toString(36).substring(2,10);
+const makeId = () => Math.random().toString(36).substring(2, 10);
 
 export default function useHandleDrop(reactFlowInstance, setNodes) {
   return {
@@ -38,12 +39,12 @@ export default function useHandleDrop(reactFlowInstance, setNodes) {
       }
 
       const bg = restrictedNodes.includes(type) ? colorBgInstanceNode : getRandomColor();
-      const center = { x: position.x + width/2, y: position.y + height/2 };
+      const center = { x: position.x + width / 2, y: position.y + height / 2 };
       const id = makeId();
 
       let newNode = {
         id, type, position, width, height,
-        data: { label: `${type}-${id}`, title: getNodeTitle({type}), bgNode: bg }
+        data: { label: `${type}-${id}`, title: getNodeTitle({ type }), bgNode: bg }
       };
 
       const all = reactFlowInstance.getNodes();
@@ -60,7 +61,16 @@ export default function useHandleDrop(reactFlowInstance, setNodes) {
           center.y > n.position.y && center.y < n.position.y + (n.height || n.style?.height)
         );
         if (!parent) return;
-        newNode = { ...newNode, parentId: parent.id, position:{ x: position.x - parent.position.x, y: position.y - parent.position.y }, extent: 'parent' };
+        newNode = { ...newNode, parentId: parent.id, position: { x: position.x - parent.position.x, y: position.y - parent.position.y }, extent: 'parent' };
+        setNodes(nds => [...nds, newNode]); return;
+      }
+
+      if (type === TYPE_ROUTER_NODE) {
+        const exist = all.some(n => n.type === TYPE_ROUTER_NODE);
+        if (exist) {
+          alert('Only one router node is allowed in the flow.');
+          return;
+        }
         setNodes(nds => [...nds, newNode]); return;
       }
 
@@ -71,7 +81,8 @@ export default function useHandleDrop(reactFlowInstance, setNodes) {
           center.y > n.position.y && center.y < n.position.y + (n.height || n.style?.height)
         );
         if (!subnet) return;
-        newNode = { ...newNode, parentId: subnet.id,
+        newNode = {
+          ...newNode, parentId: subnet.id,
           position: { x: position.x - subnet.position.x, y: position.y - subnet.position.y },
           extent: 'parent'
         };

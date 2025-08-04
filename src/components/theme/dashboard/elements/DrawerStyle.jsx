@@ -6,15 +6,17 @@ import MuiDrawer from '@mui/material/Drawer';
 
 export const DrawerStyle = styled(MuiDrawer, { shouldForwardProp: (prop) => prop !== 'open' })(
     ({ theme, open }) => ({
-        '& .MuiDrawer-paper': {
-            position: 'relative',
-            whiteSpace: 'nowrap',
-            width: DRAWERWITH,
-            transition: theme.transitions.create('width', {
-                easing: theme.transitions.easing.sharp,
-                duration: theme.transitions.duration.enteringScreen,
-            }),
-            boxSizing: 'border-box',
+          '& .MuiDrawer-paper': {
+              position: 'relative',
+              whiteSpace: 'nowrap',
+              width: DRAWERWITH,
+              backgroundColor: '#233044',
+              color: '#ffffff',
+              transition: theme.transitions.create('width', {
+                  easing: theme.transitions.easing.sharp,
+                  duration: theme.transitions.duration.enteringScreen,
+              }),
+              boxSizing: 'border-box',
             ...(!open && {
                 overflowX: 'hidden',
                 transition: theme.transitions.create('width', {

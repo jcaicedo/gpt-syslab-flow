@@ -22,7 +22,7 @@ function SubNetworkNodeInstance({ data, isConnectable }) {
         // eslint-disable-next-line react/prop-types
         style={{ backgroundColor: data.bgNode }}>
         <NodeResizer minWidth={180} minHeight={100} />
-        <Box sx={{ padding: 1 }} style={{ backgroundColor: '#00008b' }}>
+        <Box className='node-subnetwork-header'>
           <Typography>{titleNode} {data.subnetName}</Typography>
         </Box>
         <Handle

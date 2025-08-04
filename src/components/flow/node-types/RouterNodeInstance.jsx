@@ -5,7 +5,7 @@ import './styles/RouterNode.css';
 
 const RouterNodeInstance = ({ id, title = "ROUTER" }) => {
     return (
-        <Paper elevation={3} className="router-node" style={{ backgroundColor: '#fff' }}>
+        <Paper elevation={3} className="router-node">
             {title && <Typography variant="h6" className="router-node-title">{title}</Typography>}
             <Box className="router">
                 <Box className="circle">

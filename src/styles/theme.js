@@ -32,10 +32,32 @@ export const darkTheme = createTheme({
                 }
             }
         },
+        MuiAppBar: {
+            defaultProps: {
+                square: false,
+            },
+            styleOverrides: {
+                root: {
+                    backgroundColor: '#233044',
+                    color: '#ffffff',
+                    borderRadius: '0 0 16px 16px',
+                },
+            },
+        },
+        MuiDrawer: {
+            styleOverrides: {
+                paper: {
+                    backgroundColor: '#233044',
+                    color: '#ffffff',
+                    borderRadius: '0 16px 16px 0',
+                },
+            },
+        },
         MuiPaper: {
             styleOverrides: {
                 root: {
                     backgroundColor: '#ffffff',
+                    borderRadius: '12px',
                 }
             },
             variants:[
@@ -54,7 +76,8 @@ export const darkTheme = createTheme({
                 {
                     props:{variant:'whiteStyle'},
                     style:{
-                        color:'#ffffff'
+                        color:'#ffffff',
+                        borderRadius:'8px'
                     }
                 }
             ]

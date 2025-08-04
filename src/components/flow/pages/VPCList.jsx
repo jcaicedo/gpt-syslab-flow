@@ -4,7 +4,6 @@ import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from "../../../firebase/firebaseConfig";
 import { Box, Button, IconButton, Paper, Stack, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography } from "@mui/material";
 import AddIcon from '@mui/icons-material/Add';
-import CreateVPCModal from "./CreateVPCModal";
 import { useNavigate } from "react-router-dom";
 import { DeleteOutline } from "@mui/icons-material";
 import { ModeEditOutlined } from "@mui/icons-material";
@@ -47,7 +46,7 @@ const useFetchVPCs = (setLoadingFlow) => {
         } finally {
             setLoadingFlow(false)
         }
-    }, [setLoadingFlow, userId, user, role])
+    }, [setLoadingFlow, userId, role])
 
     useEffect(() => {
         fetchVPCs()
@@ -85,40 +84,28 @@ const fetchAllVPCs = async () => {
 
 
 const VPCList = () => {
-
-
-    const [isCreateVPCModalOpen, setIsCreateVPCModalOpen] = useState(false)
     const navigate = useNavigate()
     const { setLoadingFlow } = useContext(LoadingFlowContext)
-    const { setCidrBlockVPC, setPrefixLength } = useCidrBlockVPCStore();
+    const { setCidrBlockVPC } = useCidrBlockVPCStore();
 
     const { vpcs } = useFetchVPCs(setLoadingFlow)
-
-    const handleCreateVPCModalClose = (newVPCId, cidrBlock, prefixLength) => {
-        setCidrBlockVPC(cidrBlock)
-        setPrefixLength(prefixLength);
-        setIsCreateVPCModalOpen(false);
-        setLoadingFlow(false)
-        if (newVPCId) {
-            navigate(`/admin/vpcs/${newVPCId}/mainflow`);
-        }
-    };
 
     const handleLinkToFlow = (newVPCId, ipVPC) => {
         setLoadingFlow(true)
         setCidrBlockVPC(ipVPC)
         setLoadingFlow(false)
         navigate(`/admin/vpcs/${newVPCId}/mainflow`);
+    }
 
-
-
+    const handleNavigateToCreate = () => {
+        navigate('/admin/vpcs/new');
     }
 
 
     return (
         <div>
-            <Stack direction="column" // flex-direction: column
-                spacing={4}     >
+            <Stack direction="column"
+                spacing={4}>
                 <Stack direction="row">
                     <Box flexGrow={1} flexShrink={1} flexBasis="auto">
                         <Typography variant="h4" sx={{
@@ -128,10 +115,7 @@ const VPCList = () => {
                         </Typography>
                     </Box>
                     <div>
-                        {/* <Button variant="contained" color="primary" onClick={() => setIsCreateVPCModalOpen(true)}>
-                            Crear Nueva VPC
-                        </Button> */}
-                        <Button variant="contained" startIcon={<AddIcon/>} onClick={() => setIsCreateVPCModalOpen(true)} color="secondary">
+                        <Button variant="contained" startIcon={<AddIcon/>} onClick={handleNavigateToCreate} color="secondary">
                             Add new vpc
                         </Button>
                     </div>
@@ -139,16 +123,6 @@ const VPCList = () => {
                 </Stack>
                 <VPCsTable vpcs={vpcs} onEdit={handleLinkToFlow} />
             </Stack>
-            {/* <h2>Lista de VPCs</h2>
-            <Button variant="contained" color="primary" onClick={() => setIsCreateVPCModalOpen(true)}>
-                Crear Nueva VPC
-            </Button>
-
-
-            <VPCsTable vpcs={vpcs} onEdit={handleLinkToFlow} /> */}
-
-            <CreateVPCModal open={isCreateVPCModalOpen} onClose={handleCreateVPCModalClose} />
-
         </div>
     )
 }

@@ -7,20 +7,18 @@ import { ReactFlowProvider } from "@xyflow/react";
 import MainLayout from '../layout/MainLayout';
 import { Navigate } from 'react-router-dom';
 import VPCList from '../flow/pages/VPCList';
+import CreateVPCPage from '../flow/pages/CreateVPCPage';
 import { LoadingFlowProvider } from '../../contexts/LoadingFlowContext';
 import LoadingFlow from './LoadingFlow';
 import SettingsPage from '../pages/SettingsPage';
 import { UsersManagement } from '../pages/settings/UsersManagement';
 import ProfilePage from '../pages/ProfilePage';
-import { useAuth } from '../../contexts/AuthContext';
 import { USER_ROL_STUDENT, USER_ROL_SUPER_ADMIN, USER_ROL_TEACHER } from '../../constants';
 import ProtectedRoute from './ProtectedRoute';
 import GeneralSettings from '../pages/settings/GeneralSettings';
 
 
 const DashboardRoutes = () => {
-
-    const { user } = useAuth()
 
     return (
         <LoadingFlowProvider>
@@ -67,6 +65,13 @@ const DashboardRoutes = () => {
                         <>
                             <LoadingFlow />
                             <VPCList />
+                        </>
+                    } />
+
+                    <Route path='vpcs/new' element={
+                        <>
+                            <LoadingFlow />
+                            <CreateVPCPage />
                         </>
                     } />
 

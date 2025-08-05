@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { loginWithEmail, loginWithGoogle } from '../../../services/authServices'
+import { loginWithCredentials, loginWithGoogle } from '../../../services/authServices'
 import { Avatar, Box, Button, Checkbox, CssBaseline, FormControlLabel, Grid, Link, Paper, TextField, Typography } from '@mui/material'
 import { LockClockOutlined } from '@mui/icons-material'
 import GoogleIcon from '@mui/icons-material/Google';
@@ -10,17 +10,17 @@ import GoogleIcon from '@mui/icons-material/Google';
 
 const LoginPage = () => {
 
-    const [email, setEmail] = useState('')
+    const [identifier, setIdentifier] = useState('')
     const [password, setPassword] = useState('')
     const navigate = useNavigate()
 
     const handleLogin = async (e) => {
         e.preventDefault()
         try {
-            await loginWithEmail(email, password)
+            await loginWithCredentials(identifier, password)
             navigate('/')
         } catch (error) {
-            // console.log('Error loggin in with email:', error);
+            // console.log('Error logging in:', error);
         }
     }
 
@@ -71,12 +71,12 @@ const LoginPage = () => {
                             margin="normal"
                             required
                             fullWidth
-                            id="email"
-                            label="Email Address"
-                            name="email"
-                            autoComplete="email"
+                            id="identifier"
+                            label="Email or Username"
+                            name="identifier"
+                            autoComplete="username"
                             autoFocus
-                            value={email} onChange={(e) => setEmail(e.target.value)}
+                            value={identifier} onChange={(e) => setIdentifier(e.target.value)}
                         />
                         <TextField
                             margin="normal"

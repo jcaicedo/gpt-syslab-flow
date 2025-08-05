@@ -7,12 +7,28 @@ import { useState } from "react";
 
 const googleProvider = new GoogleAuthProvider();
 
-export const loginWithEmail = (email, password) => {
-    return signInWithEmailAndPassword(auth, email, password)
-}
+export const loginWithCredentials = async (identifier, password) => {
+    // If identifier looks like an email, use it directly
+    if (identifier.includes("@")) {
+        return signInWithEmailAndPassword(auth, identifier, password);
+    }
+
+    // Otherwise treat it as a username and fetch the corresponding email
+    const usersCollection = collection(db, DB_FIRESTORE_USERS);
+    const q = query(usersCollection, where("username", "==", identifier));
+    const querySnapshot = await getDocs(q);
+
+    if (querySnapshot.empty) {
+        throw new Error("User not found");
+    }
+
+    const userData = querySnapshot.docs[0].data();
+    const { email } = userData;
+    return signInWithEmailAndPassword(auth, email, password);
+};
 
 export const loginWithGoogle = () => {
-    return signInWithPopup(auth, googleProvider)
+    return signInWithPopup(auth, googleProvider);
 }
 
 
@@ -62,7 +78,6 @@ export const useUserRegistration = (userId) => {
 
         fetchUser()
 
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [userId])
 
     const registerWithGoogle = async () => {

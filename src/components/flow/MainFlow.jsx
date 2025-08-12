@@ -175,8 +175,8 @@ function MainFlow() {
 
     const [openRouteTableFullScreen, setOpenRouteTableFullScreen] = useState(false);
 
-  const { onDrop } = useHandleDrop(reactFlowInstance, setNodes);
-  const { onNodeDragStop } = useRestrictMovement(reactFlowInstance, setNodes);
+    const { onDrop } = useHandleDrop(reactFlowInstance, setNodes);
+    const { onNodeDragStop } = useRestrictMovement(reactFlowInstance, setNodes);
 
     // const [vpcData, setVPCData] = useState(null);
 
@@ -201,6 +201,8 @@ function MainFlow() {
     }
 
     const saveNodeData = (data) => {
+        console.log();
+        
         setNodes((nds) =>
             nds.map((node) => {
                 if (node.id === selectedNode.id) {
@@ -485,9 +487,33 @@ function MainFlow() {
                         {selectedNode && selectedNode.type === TYPE_ROUTER_NODE && (
                             <RouterNodeForm nodeData={selectedNode.data} onSave={saveNodeData} cidrBlockVPC={cidrBlockVPC} deleteNode={deleteNodeInstance} />
                         )}
-                        {selectedNode && selectedNode.type === TYPE_VPC_NODE && (
-                            <VPCNodeForm nodeData={selectedNode.data} onSave={saveNodeData} deleteNode={deleteNodeInstance} />
-                        )}
+                        {selectedNode && selectedNode.type === TYPE_VPC_NODE && (() => {
+
+                            //1) VLAN CIDR maestro desde store
+                            const vlanCidr = (cidrBlockVPC && prefixLength)
+                                ? `${cidrBlockVPC}/${prefixLength}`
+                                : "";
+                            //2) CIDRs de otras VPC-hija (excluye la seleccionada)
+                            const siblingVpcCidrs = nodes
+                                .filter(n => n.type === TYPE_VPC_NODE && n.id !== selectedNode.id)
+                                .map(n => {
+                                    const base = n.data?.cidrBlock;
+                                    const pref = n.data?.prefixLength;
+                                    return base && pref ? `${base}/${pref}` : null;
+                                }).filter(Boolean);
+
+                            return (
+                                <VPCNodeForm
+                                    nodeData={selectedNode.data}
+                                    onSave={saveNodeData}
+                                    deleteNode={deleteNodeInstance}
+                                    vlanCidr={vlanCidr}                 // <-- pasa VLAN CIDR
+                                    siblingVpcCidrs={siblingVpcCidrs}   // <-- pasa lista de VPC CIDRs hermanas
+                                />
+
+                            )
+
+                        })()}
 
 
                     </Box>

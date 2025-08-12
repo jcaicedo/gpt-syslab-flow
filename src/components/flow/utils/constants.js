@@ -25,6 +25,8 @@ export const TYPE_INSTANCE_NODE  = "instance-node"
 
 export const VPC_FORM = "vpc-form"
 export const VLAN_FORM = "vlan-form"
+export const VPC_CHILD_FORM = "vpc-child-form";
+
 
 export const CLOUD_AWS_VALUE = "aws"
 export const CLOUD_GCP_VALUE = "gcp"

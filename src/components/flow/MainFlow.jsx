@@ -389,7 +389,7 @@ function MainFlow() {
                             onNodesChange={onNodesChange}
                             onEdgesChange={onEdgesChange}
                             onNodeClick={onNodeClick}
-                            onConnect={(params) => onConnect(params, setEdges)}
+                            onConnect={(params) => onConnect(params, setEdges, () => reactFlowInstance?.getEdges?.() || [])}
                             onInit={setReactFlowInstance}
                             onDrop={onDrop}
                             onNodeDragStart={onNodeDragStart}

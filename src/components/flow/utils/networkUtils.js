@@ -2,12 +2,12 @@ import { Netmask } from "netmask";
 
 
 /**
- * Verifica si un CIDR objetivo está contenido dentro del bloque CIDR principal.
- * @param {string} vpcCidr - El bloque CIDR principal (por ejemplo: '192.168.0.0/16')
- * @param {string} targetCidr - El bloque CIDR objetivo a validar
+ * Verifica si un CIDR objetivo está completamente contenido dentro del CIDR padre.
+ * @param {string} parentCidr - e.g. '10.0.0.0/16' (VLAN o VPC)
+ * @param {string} targetCidr - e.g. '10.0.1.0/24'
  * @returns {boolean}
  */
-export const isCidrInVpcRange = (vpcCidr, targetCidr) => {
+export const isCidrInVpcRange = (parentCidr, targetCidr) => {
 
     if (
         !targetCidr ||
@@ -19,14 +19,35 @@ export const isCidrInVpcRange = (vpcCidr, targetCidr) => {
     }
 
     try {
-        const vpcBlock = new Netmask(vpcCidr);
-        const targetBlock = new Netmask(targetCidr);
-        return vpcBlock.contains(targetBlock.base);
+        const parent = new Netmask(parentCidr);
+        const child = new Netmask(targetCidr);
 
+        //Se asegura contención completa del bloque, no solo la base
+        return parent.contains(child.base) && parent.contains(child.broadcast);
     }
     catch (error) {
         console.error("Error validating CIDR range:", error);
         return false;
     }
 }
+
+export const overlapsCidr = (cidrA, cidrB) => {
+    try {
+        const a = new Netmask(cidrA), b = new Netmask(cidrB);
+        return !(a.broadcast < b.base || b.broadcast < a.base);
+    } catch (error) {
+        console.error("Error checking CIDR overlap:", error);
+        return true;
+    }
+}
+
+export const overlapsAny = (targetCidr, cidrList) => (cidrList || []).some(c => overlapsCidr(targetCidr, c));
+
+export const ipInCidr = (ip, cidr) => {
+    try { return new Netmask(cidr).contains(ip); } catch { return false; }
+}
+
+
+
+
 

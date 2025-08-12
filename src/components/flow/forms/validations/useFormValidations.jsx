@@ -1,6 +1,6 @@
 import * as yup from 'yup';
 import { Netmask } from 'netmask';
-import { TYPE_COMPUTER_NODE, TYPE_INSTANCE_NODE, TYPE_PRINTER_NODE, TYPE_ROUTER_NODE, TYPE_SERVER_NODE, TYPE_SUBNETWORK_NODE, VPC_FORM } from '../../utils/constants';
+import { TYPE_COMPUTER_NODE, TYPE_INSTANCE_NODE, TYPE_PRINTER_NODE, TYPE_ROUTER_NODE, TYPE_SERVER_NODE, TYPE_SUBNETWORK_NODE, VLAN_FORM, VPC_FORM } from '../../utils/constants';
 import { isCidrInVpcRange } from '../../utils/networkUtils';
 
 const ipRegex = /^(25[0-5]|2[0-4][0-9]|1?[0-9]?[0-9])\.(25[0-5]|2[0-4][0-9]|1?[0-9]?[0-9])\.(25[0-5]|2[0-4][0-9]|1?[0-9]?[0-9])\.(25[0-5]|2[0-4][0-9]|1?[0-9]?[0-9])$/;
@@ -15,10 +15,45 @@ const isCidrValid = (value) => {
   }
 };
 
-export const useFormValidationSchema = (formType, cidrBlockVPC = null, prefixLength = null, context = {}) => {
+export const useFormValidationSchema = (
+  formType,
+  cidrBlockVPC = null,
+  prefixLength = null,
+  context = {},
+  validateCidr = false
+) => {
   const fullVpcCidr = cidrBlockVPC && prefixLength ? `${cidrBlockVPC}/${prefixLength}` : null;
 
   switch (formType) {
+    case VLAN_FORM:
+      return yup.object({
+        vlanName: yup
+          .string()
+          .trim()
+          .min(3, "VLAN Name must be at least 3 characters")
+          .max(60, "VLAN Name must be at most 60 characters")
+          .required("VLAN Name is required"),
+        cidrBlock: validateCidr
+          ? yup
+            .string()
+            .required("CIDR Block is required")
+            .matches(cidrRegex, "CIDR Block must be in format 192.168.0.0/24")
+            .test("is-valid-cidr", "CIDR block is invalid", value => isCidrValid(value))
+            .test("prefix-range", "CIDR should leave room for subnets (e.g. /16 to /24)", value => {
+              if (!value) return false;
+              const [, p] = value.split("/");
+              const prefix = Number(p);
+              return prefix >= 8 && prefix <= 28; // ajusta a tu política
+            })
+          : yup.string().required("CIDR Block is required"),
+        cloudProvider: yup
+          .string()
+          .oneOf(['aws'], 'Invalid Cloud Provider')
+          .required('Cloud Provider is required'),
+        region: yup
+          .string()
+          .required('Region is required'),
+      }).required();
     case VPC_FORM:
       return yup.object({
         cloudProvider: yup.string().required("Cloud Provider is required"),

@@ -34,53 +34,41 @@ import { useFlowState } from './flow-hooks/useFlowState';
 import useNodeClick from './flow-hooks/useNodeClick';
 import useNodeDrag from './flow-hooks/useNodeDrag';
 import useNodeDragStart from './flow-hooks/useNodeDragStart';
-import useNodeDragStop from './flow-hooks/useNodeDragStop';
 import useRestoreFlow from './flow-hooks/useRestoreFlow';
 import useSaveFlow from './flow-hooks/useSaveFlow';
 import InstanceNodeForm from './forms/InstanceNodeForm';
-import SubNetworkNodeForm from './forms/SubNetworkNodeForm';
 import RouterNodeForm from './forms/RouterNodeForm';
+import SubNetworkNodeForm from './forms/SubNetworkNodeForm';
 import VPCNodeForm from './forms/VPCNodeForm';
 import InstanceNode from "./node-types/InstanceNode";
 import RouterNodeInstance from "./node-types/RouterNodeInstance";
-import VPCNodeInstance from "./node-types/VPCNodeInstance";
 import SubNetworkNodeInstance from './node-types/SubNetworkNodeInstance';
+import VPCNodeInstance from "./node-types/VPCNodeInstance";
 import useCidrBlockVPCStore from './store/cidrBlocksIp';
 import useClickedNodeIdStore from './store/clickedNodeIdStore';
 
 // Importar constantes
 import {
-    colorBgInstanceNode,
-    colorsBgSubnetworksNodes,
     DB_AMI_LIST,
     flowKey,
-    heightDefaultInstanceNode,
-    heightDefaultInstanceRouter,
-    heightDefaultSubNetworkNode,
     TYPE_COMPUTER_NODE,
     TYPE_DEFAULT_NODE,
     TYPE_PRINTER_NODE,
     TYPE_ROUTER_NODE,
     TYPE_SERVER_NODE,
     TYPE_SUBNETWORK_NODE,
-    TYPE_VPC_NODE,
-    widthDefaultInstanceNode,
-    widthDefaultInstanceRouter,
-    widthDefaultSubNetworkNode,
+    TYPE_VPC_NODE
 } from './utils/constants';
 
 import { collection, getDocs } from "firebase/firestore";
+import { useContext } from "react";
+import { LoadingFlowContext } from "../../contexts/LoadingFlowContext";
 import { NetworkProvider } from "../../contexts/NetworkNodesContext";
 import { db } from "../../firebase/firebaseConfig";
 import useDeployNetwork from "./flow-hooks/useDeployNetwork";
-import RouteTableForm from "./forms/RouteTableForm";
-import RouteTableFormFullScreen from "./forms/RouteTableFormFullScreen";
-import getNodeTitle from "./utils/getNodeTitle";
-import { LoadingFlowContext } from "../../contexts/LoadingFlowContext";
-import { useContext } from "react";
-import { useRestrictSubnetsInsideVPC } from "./flow-hooks/useRestrictSubnetsInsideVPC";
 import useHandleDrop from "./flow-hooks/useHandleDrop";
 import useRestrictMovement from "./flow-hooks/useRestrictMovement";
+import { useRestrictSubnetsInsideVPC } from "./flow-hooks/useRestrictSubnetsInsideVPC";
 
 
 
@@ -173,8 +161,6 @@ function MainFlow() {
     const [modalIsOpen, setModalIsOpen] = useState(false);
     const [selectedNode, setSelectedNode] = useState(null);
 
-    const [openRouteTableFullScreen, setOpenRouteTableFullScreen] = useState(false);
-
     const { onDrop } = useHandleDrop(reactFlowInstance, setNodes);
     const { onNodeDragStop } = useRestrictMovement(reactFlowInstance, setNodes);
 
@@ -192,7 +178,7 @@ function MainFlow() {
     }, []);
 
 
-    const onNodeClick = useNodeClick(setSelectedNode, setModalIsOpen, setOpenRouteTableFullScreen);
+    const onNodeClick = useNodeClick(setSelectedNode, setModalIsOpen);
 
 
     const closeModal = () => {
@@ -465,7 +451,7 @@ function MainFlow() {
                 >
                     <Box sx={{ ...style, width: 400 }}>
 
-
+                        {/* If selected node is restricted, show warning */}
                         {selectedNode && restrictedNodes.includes(selectedNode.type) && (() => {
                             // Subnet padre de la instancia seleccionada
                             const parentSubnet = nodes.find(n => n.id === selectedNode.parentId);
@@ -494,7 +480,7 @@ function MainFlow() {
                         })()}
 
 
-
+                        {/* If node type is Subnetwork, show SubNetworkNodeForm */}
                         {selectedNode && selectedNode.type === TYPE_SUBNETWORK_NODE && (() => {
                             //VPC-hija padre de la Subnet seleccionada
                             const parentVpcNode = nodes.find(n => n.id === selectedNode.parentId);
@@ -518,9 +504,22 @@ function MainFlow() {
                                 />
                             )
                         })()}
-                        {selectedNode && selectedNode.type === TYPE_ROUTER_NODE && (
-                            <RouterNodeForm nodeData={selectedNode.data} onSave={saveNodeData} cidrBlockVPC={cidrBlockVPC} deleteNode={deleteNodeInstance} />
-                        )}
+
+
+                        {/* If node type is Router, show RouterNodeForm */}
+                        {selectedNode && selectedNode.type === TYPE_ROUTER_NODE && (() => {
+                            const vlanRegion = "us-east-1"; // o léela desde el doc de la VLAN si la guardas
+                            return (
+                                <RouterNodeForm
+                                    node={selectedNode}                 // << importante
+                                    nodeData={selectedNode.data}
+                                    onSave={saveNodeData}
+                                    deleteNode={deleteNodeInstance}
+                                    vlanRegion={vlanRegion}
+                                />
+                            );
+                        })()}
+                        {/* If node type is VPC, show VPCNodeForm */}
                         {selectedNode && selectedNode.type === TYPE_VPC_NODE && (() => {
 
                             //1) VLAN CIDR maestro desde store
@@ -552,16 +551,6 @@ function MainFlow() {
 
                     </Box>
                 </Modal>
-
-
-                {selectedNode && (
-                    <RouteTableFormFullScreen
-                        openModalRouteTable={openRouteTableFullScreen}
-                        handleOpenDialog={() => setOpenRouteTableFullScreen(false)}
-                        node={selectedNode}
-                        onSave={saveNodeData}
-                    />
-                )}
 
 
                 {/* Modal to confirm deploy */}

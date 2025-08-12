@@ -4,9 +4,6 @@ import { TYPE_ROUTER_NODE } from '../utils/constants';
 const useNodeClick = (setSelectedNode, setModalIsOpen, setOpenRouteTableFullScreen) => {
     // eslint-disable-next-line no-unused-vars
     const setClickedNodeId = useClickedNodeIdStore(state => state.setClickedNodeId);
-   
-
-
     const onNodeClick = (event, node) => {
         // console.log("NODE: ", node);
 

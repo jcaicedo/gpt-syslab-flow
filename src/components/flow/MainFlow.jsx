@@ -202,7 +202,7 @@ function MainFlow() {
 
     const saveNodeData = (data) => {
         console.log();
-        
+
         setNodes((nds) =>
             nds.map((node) => {
                 if (node.id === selectedNode.id) {
@@ -467,23 +467,57 @@ function MainFlow() {
 
 
                         {selectedNode && restrictedNodes.includes(selectedNode.type) && (() => {
+                            // Subnet padre de la instancia seleccionada
                             const parentSubnet = nodes.find(n => n.id === selectedNode.parentId);
-                            const subnetCidr = parentSubnet?.data?.cidrBlock || "";
+                            const parentSubnetCidr = parentSubnet?.data?.cidrBlock || "";
+
+                            // IPs ya usadas en la misma Subnet (excluye la instancia actual)
+                            const siblingIpsInSameSubnet = nodes
+                                .filter(n =>
+                                    restrictedNodes.includes(n.type) &&
+                                    n.parentId === parentSubnet?.id &&
+                                    n.id !== selectedNode.id
+                                )
+                                .map(n => n.data?.ipAddress)
+                                .filter(Boolean);
 
                             return (
                                 <InstanceNodeForm
                                     nodeData={selectedNode.data}
                                     onSave={saveNodeData}
-                                    cidrBlockVPC={subnetCidr}
-                                    amiList={amiList}
                                     deleteNode={deleteNodeInstance}
+                                    parentSubnetCidr={parentSubnetCidr}                // <-- clave
+                                    siblingIpsInSameSubnet={siblingIpsInSameSubnet}    // <-- clave
+                                    amiList={amiList}
                                 />
                             );
                         })()}
 
-                        {selectedNode && selectedNode.type === TYPE_SUBNETWORK_NODE && (
-                            <SubNetworkNodeForm nodeData={selectedNode.data} onSave={saveNodeData} cidrBlockVPC={cidrBlockVPC} deleteNode={deleteNodeInstance} />
-                        )}
+
+
+                        {selectedNode && selectedNode.type === TYPE_SUBNETWORK_NODE && (() => {
+                            //VPC-hija padre de la Subnet seleccionada
+                            const parentVpcNode = nodes.find(n => n.id === selectedNode.parentId);
+                            const parentVpcCidr = parentVpcNode?.data
+                                ? `${parentVpcNode.data.cidrBlock}/${parentVpcNode.data.prefixLength}`
+                                : "";
+
+                            // CIDRs de subredes hermanas (misma VPC) excluyendo la actual
+                            const siblingSubnetCidrsInSameVpc = nodes
+                                .filter(n => n.type === TYPE_SUBNETWORK_NODE && n.parentId === parentVpcNode?.id && n.id !== selectedNode.id)
+                                .map(n => n.data?.cidrBlock)
+                                .filter(Boolean);
+
+                            return (
+                                <SubNetworkNodeForm
+                                    nodeData={selectedNode.data}
+                                    onSave={saveNodeData}
+                                    deleteNode={deleteNodeInstance}
+                                    parentVpcCidr={parentVpcCidr}                               // <-- clave
+                                    siblingSubnetCidrsInSameVpc={siblingSubnetCidrsInSameVpc}   // <-- clave
+                                />
+                            )
+                        })()}
                         {selectedNode && selectedNode.type === TYPE_ROUTER_NODE && (
                             <RouterNodeForm nodeData={selectedNode.data} onSave={saveNodeData} cidrBlockVPC={cidrBlockVPC} deleteNode={deleteNodeInstance} />
                         )}

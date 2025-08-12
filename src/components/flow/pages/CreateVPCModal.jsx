@@ -28,9 +28,9 @@ const CreateVPCModal = ({ open, onClose }) => {
         // console.log("loadingFlow",loadingFlow);
 
         setLoadingFlow(true)
-        const { vlanName, cloudProvider, cidrBlock, prefixLength } = vpcData
+        const { vlanName, cloudProvider, cidrBlock, prefixLength, type } = vpcData
 
-        if (vlanName && cloudProvider && cidrBlock && prefixLength) {
+        if (vlanName && cloudProvider && cidrBlock && prefixLength && type) {
 
             try {
                 const vpcDoc = await addDoc(collection(db, 'vpcs'), {
@@ -38,15 +38,16 @@ const CreateVPCModal = ({ open, onClose }) => {
                     cloudProvider,
                     cidrBlock,
                     userId,
-                    prefixLength
+                    prefixLength,
+                    type
                 })
                 onClose(vpcDoc.id, cidrBlock, prefixLength)
             } catch (error) {
-                // console.log(error);
+                console.error("Error creating VPC:", error)
             }
 
         } else {
-            // console.log("Error: Missing VPC name or cloud type")
+            console.error("Error: Missing VPC name or cloud type")
         }
     }
 

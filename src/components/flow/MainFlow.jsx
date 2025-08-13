@@ -27,7 +27,7 @@ import {
 // import Modal from 'react-modal';
 import '@xyflow/react/dist/style.css';
 import '../../App.css';
-
+import './styles/packet-tracer.css';
 //Custom compoonents and hooks
 import SidebarFlow from './SidebarFlow';
 import { useFlowState } from './flow-hooks/useFlowState';
@@ -397,6 +397,9 @@ function MainFlow() {
                             onNodeDragStop={onNodeDragStop}
                             onDragOver={onDragOver}
                             snapToGrid
+                            snapGrid={[16, 16]}              // alineación limpia
+                            selectionOnDrag={false}          // evita seleccionar “marco azul” al arrastrar
+                            elevateNodesOnSelect
                             onConnectStart={onConnectStart}
                             onConnectEnd={onConnectEnd}
                             fitViewOptions={{

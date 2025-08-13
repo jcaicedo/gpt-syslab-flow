@@ -1,0 +1,232 @@
+/* ---------- Packet Tracer inspired UI ---------- */
+:root {
+    --pt-bg: #0f1220;
+    --pt-card: #182033;
+    --pt-card-2: #111729;
+    --pt-border: #26324d;
+    --pt-text: #e8eefc;
+    --pt-subtext: #a6b2cf;
+    --pt-green: #2ecc71;
+    --pt-yellow: #f1c40f;
+    --pt-red: #e74c3c;
+    --pt-blue: #3a7afe;
+    --pt-cyan: #2cd9ff;
+
+    --pt-vpc: linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%);
+    --pt-subnet: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+    --pt-instance: linear-gradient(135deg, #a855f7 0%, #7c3aed 100%);
+    --pt-router: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+
+    --pt-radius: 16px;
+    --pt-shadow: 0 6px 18px rgba(6, 14, 30, 0.35);
+    --pt-shadow-strong: 0 12px 30px rgba(6, 14, 30, 0.55);
+}
+
+/* Base de nodos */
+.pt-node {
+    position: relative;
+    border-radius: var(--pt-radius);
+    background: linear-gradient(180deg, var(--pt-card), var(--pt-card-2));
+    color: var(--pt-text);
+    border: 1px solid var(--pt-border);
+    box-shadow: var(--pt-shadow);
+    overflow: hidden;
+    user-select: none;
+    transition: transform .12s ease, box-shadow .2s ease, border-color .2s ease;
+    font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+}
+
+/* Hover / selected */
+.pt-node:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--pt-shadow-strong);
+}
+
+.react-flow__node.selected .pt-node {
+    border-color: var(--pt-cyan);
+    box-shadow: 0 0 0 3px rgba(44, 217, 255, 0.2), var(--pt-shadow-strong);
+}
+
+/* Header con banda de color */
+.pt-node__header {
+    display: grid;
+    grid-template-columns: 24px 1fr auto;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    background: rgba(255, 255, 255, 0.03);
+    border-bottom: 1px solid var(--pt-border);
+}
+
+.pt-node__stripe {
+    width: 6px;
+    height: 24px;
+    border-radius: 999px;
+    background: var(--pt-blue);
+}
+
+/* Título + subtítulo */
+.pt-node__title {
+    font-weight: 600;
+    letter-spacing: .2px;
+    line-height: 1.1;
+}
+
+.pt-node__subtitle {
+    margin-top: 2px;
+    font-size: 12px;
+    color: var(--pt-subtext);
+}
+
+/* LED de estado */
+.pt-led {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--pt-subtext);
+}
+
+.pt-led__dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 999px;
+    background: var(--pt-green);
+    box-shadow: 0 0 8px rgba(46, 204, 113, .7);
+    animation: pt-led 1.6s ease-in-out infinite;
+}
+
+@keyframes pt-led {
+
+    0%,
+    100% {
+        transform: scale(1);
+        filter: brightness(1);
+    }
+
+    50% {
+        transform: scale(1.05);
+        filter: brightness(1.2);
+    }
+}
+
+.pt-led--warn .pt-led__dot {
+    background: var(--pt-yellow);
+    box-shadow: 0 0 8px rgba(241, 196, 15, .7);
+}
+
+.pt-led--down .pt-led__dot {
+    background: var(--pt-red);
+    box-shadow: 0 0 8px rgba(231, 76, 60, .7);
+}
+
+/* Body */
+.pt-node__body {
+    padding: 10px 12px 12px;
+}
+
+/* Badges de puertos/info */
+.pt-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 6px;
+}
+
+.pt-badge {
+    font-size: 11px;
+    color: var(--pt-text);
+    border: 1px solid var(--pt-border);
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.03);
+}
+
+/* Toolbelt superior-derecha */
+.pt-toolbelt {
+    display: flex;
+    gap: 6px;
+}
+
+.pt-btn {
+    cursor: pointer;
+    padding: 6px 10px;
+    border-radius: 8px;
+    border: 1px solid var(--pt-border);
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--pt-text);
+    font-size: 12px;
+}
+
+.pt-btn:hover {
+    border-color: var(--pt-cyan);
+}
+
+/* Variantes por tipo */
+.pt-node--vpc .pt-node__stripe {
+    background: var(--pt-vpc);
+}
+
+.pt-node--subnet .pt-node__stripe {
+    background: var(--pt-subnet);
+}
+
+.pt-node--inst .pt-node__stripe {
+    background: var(--pt-instance);
+}
+
+.pt-node--router .pt-node__stripe {
+    background: var(--pt-router);
+}
+
+/* Tamaños sugeridos (solo mínimos para no romper el resizer) */
+.pt-size--vpc {
+    min-width: 520px;
+    min-height: 220px;
+}
+
+.pt-size--subnet {
+    min-width: 320px;
+    min-height: 120px;
+}
+
+.pt-size--inst {
+    min-width: 220px;
+    min-height: 80px;
+}
+
+.pt-size--router {
+    min-width: 260px;
+    min-height: 110px;
+}
+
+/* Hace que el chrome ocupe 100% del wrapper del nodo (que maneja React Flow) */
+.pt-fill {
+    width: 100%;
+    height: 100%;
+}
+
+
+/* Handler points (si usas handles custom) */
+.pt-handle {
+    width: 10px;
+    height: 10px;
+    background: var(--pt-cyan);
+    border: 2px solid #07212f;
+    border-radius: 999px;
+    box-shadow: 0 0 0 2px rgba(44, 217, 255, .25);
+}
+
+/* separa los handles del borde */
+.react-flow__handle {
+  transform: translateY(-2px);
+}
+.react-flow__handle-bottom {
+  transform: translateY(2px);
+}
+.react-flow__handle-left {
+  transform: translateX(-2px);
+}
+.react-flow__handle-right {
+  transform: translateX(2px);
+}

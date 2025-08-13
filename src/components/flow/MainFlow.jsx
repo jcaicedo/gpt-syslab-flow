@@ -11,7 +11,7 @@ import {
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import { initialNodes } from './utils/initials-elements';
-
+import PacketToolbar from "./PacketToolbar";
 // mui
 import {
     Alert,
@@ -131,6 +131,11 @@ function MainFlow() {
     const { loadingFlow } = useContext(LoadingFlowContext);
     useRestrictSubnetsInsideVPC()
     const reactFlow = useReactFlow();
+
+    const rf = useReactFlow();
+    const handleZoomIn = () => rf.zoomIn();
+    const handleZoomOut = () => rf.zoomOut();
+    const handleFitView = () => rf.fitView({ padding: .2 });
 
     // eslint-disable-next-line no-unused-vars
     const [target, setTarget] = useState(null);
@@ -376,6 +381,16 @@ function MainFlow() {
                         borderRadius: { xs: 2, sm: "0 16px 16px 0" },
                     }}
                         ref={reactFlowWrapper} >
+                        <PacketToolbar
+                            onSave={onSaveFlow}
+                            onRestore={onRestoreFlow}
+                            onRestoreInitial={restoreInitialNodes}
+                            onDeploy={processJsonToCloud}
+                            onZoomIn={handleZoomIn}
+                            onZoomOut={handleZoomOut}
+                            onFitView={handleFitView}
+                            title="Logical"
+                        />
                         <ReactFlow
                             nodes={nodes}
                             edges={edges.map(e => ({ ...e, style: connectionLineStyle, animated: true }))}
@@ -408,7 +423,7 @@ function MainFlow() {
                             connectionLineStyle={connectionLineStyle}
                         >
 
-                            <Panel position="top-right">
+                            {/* <Panel position="top-right">
                                 <Stack spacing={1}>
                                     <Button onClick={onSaveFlow} variant="contained" color="secondary">
                                         Save
@@ -431,7 +446,7 @@ function MainFlow() {
                                         Deploy Network
                                     </Button>
                                 </Stack>
-                            </Panel>
+                            </Panel> */}
 
                             <Controls />
                             <Background variant="lines" />

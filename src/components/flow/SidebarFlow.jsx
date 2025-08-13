@@ -1,6 +1,6 @@
 import { Box, Typography, Grid, Card } from '@mui/material'
 import { TITLE_COMPUTER, TITLE_PRINT, TITLE_ROUTER, TITLE_SERVER, TITLE_SUBNETWORK, TYPE_COMPUTER_NODE, TYPE_PRINTER_NODE, TYPE_ROUTER_NODE, TYPE_SERVER_NODE, TYPE_SUBNETWORK_NODE, TYPE_VPC_NODE } from './utils/constants'
-
+import './styles/sidebar-pt.css'
 
 const SidebarFlow = () => {
 

@@ -1,0 +1,20 @@
+.pt-sidebar {
+  background: linear-gradient(180deg, #121a2f, #0b1325);
+  border-right: 1px solid #223355;
+  height: 100%;
+}
+.pt-sidebar__item {
+  padding: 16px 14px;
+  cursor: grab;
+  color: #d8e6ff;
+  border-bottom: 1px solid rgba(34,51,85,.5);
+  font-weight: 600;
+  letter-spacing: .2px;
+}
+.pt-sidebar__item:hover {
+  background: rgba(44,217,255,.06);
+}
+.pt-sidebar__item--active {
+  background: rgba(44,217,255,.12);
+  color: #ffffff;
+}

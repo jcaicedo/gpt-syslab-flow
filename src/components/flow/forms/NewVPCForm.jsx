@@ -25,7 +25,7 @@ const NewVPCForm = ({ onSave }) => {
     return (
         <form onSubmit={handleSubmit(onSubmit)}>
             <FormControl fullWidth>
-                <InputLabel id="select-cloud-label">Cloud Provider</InputLabel>
+                <InputLabel id="select-cloud-label">Cloud Providerrrr</InputLabel>
                 <Select
                     labelId="select-cloud-label"
                     id="select-cloud"

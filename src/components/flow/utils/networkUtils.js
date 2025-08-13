@@ -31,7 +31,7 @@ export const isCidrInVpcRange = (parentCidr, targetCidr) => {
     }
 }
 
-export const overlapsCidr = (cidrA, cidrB) => {
+export const overlapsCidrs = (cidrA, cidrB) => {
     try {
         const a = new Netmask(cidrA), b = new Netmask(cidrB);
         return !(a.broadcast < b.base || b.broadcast < a.base);
@@ -41,7 +41,8 @@ export const overlapsCidr = (cidrA, cidrB) => {
     }
 }
 
-export const overlapsAny = (targetCidr, cidrList) => (cidrList || []).some(c => overlapsCidr(targetCidr, c));
+export const overlapsAny = (targetCidr, list=[]) =>
+  list.some(c => overlapsCidrs(targetCidr, c));
 
 export const ipInCidr = (ip, cidr) => {
     try { return new Netmask(cidr).contains(ip); } catch { return false; }

@@ -7,7 +7,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 
 // eslint-disable-next-line react/prop-types
 const NewVLANForm = ({ onSave }) => {
-  const validationSchema = useFormValidationSchema(VLAN_FORM, true);
+  const validationSchema = useFormValidationSchema(VLAN_FORM, null, null, {}, true);
 
   const { register, handleSubmit, formState: { errors } } = useForm({
     resolver: yupResolver(validationSchema),
@@ -21,6 +21,8 @@ const NewVLANForm = ({ onSave }) => {
 
   const onSubmit = (data) => {
     const [base, prefix] = data.cidrBlock.split('/');
+    console.log("OnSubmit  newVLAN data:", data);
+    
     onSave({
       cloudProvider: data.cloudProvider,
       vpcName: data.vlanName,//TODO: borrar en el futuro.

@@ -1,24 +1,61 @@
+/* eslint-disable no-unused-vars */
+/* eslint-disable react/prop-types */
 import { Button, FormControl, InputLabel, MenuItem, Select, TextField } from "@mui/material";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useFormValidationSchema } from "./validations/useFormValidations";
-import { CLOUD_AWS_LABEL, CLOUD_AWS_VALUE, VPC_FORM } from "../utils/constants";
+import { CLOUD_AWS_LABEL, CLOUD_AWS_VALUE, VPC_CHILD_FORM, VPC_FORM } from "../utils/constants";
 
 // eslint-disable-next-line react/prop-types
-const VPCNodeForm = ({ nodeData, onSave, deleteNode }) => {
-  const validationSchema = useFormValidationSchema(VPC_FORM, true);
+const VPCNodeForm = ({
+  // eslint-disable-next-line react/prop-types
+  nodeData,
+  onSave,
+  deleteNode,
+  vlanCidr, // <-- NUEVO: "10.0.0.0/16"
+  siblingVpcCidrs = [], // <-- NUEVO: ["10.0.1.0/24", "10.0.2.0/24", ...]
+  defaultRegion = "us-east-1" // opcional si luego quieres agregar región aquí
+}) => {
+  const validationSchema = useFormValidationSchema(
+    VPC_CHILD_FORM,
+    null, // cidrBlockVPC NO se usa en este form
+    null,
+    { vlanCidr, siblingVpcCidrs },// <-- clave para validaciones
+    true // activa validación CIDR
+  );
+
   const { register, handleSubmit, formState: { errors } } = useForm({
     resolver: yupResolver(validationSchema),
     defaultValues: {
       cloudProvider: nodeData.cloudProvider || CLOUD_AWS_VALUE,
       vpcName: nodeData.vpcName || "",
-      cidrBlock: nodeData.cidrBlock && nodeData.prefixLength ? `${nodeData.cidrBlock}/${nodeData.prefixLength}` : "",
+      region: nodeData.region || defaultRegion,
+      // si ya tienes separado base+prefix se vuelve a juntar para el input
+      cidrBlock:
+        nodeData.cidrBlock && nodeData.prefixLength
+          ? `${nodeData.cidrBlock}/${nodeData.prefixLength}`
+          : "",
     }
+  });
+  console.log("VPCNodeForm defaultValues:", {
+    cloudProvider: nodeData.cloudProvider || CLOUD_AWS_VALUE,
+    vpcName: nodeData.vpcName || "",
+    cidrBlock:
+      nodeData.cidrBlock && nodeData.prefixLength
+        ? `${nodeData.cidrBlock}/${nodeData.prefixLength}`
+        : "",
   });
 
   const onSubmit = (data) => {
     const [base, prefix] = data.cidrBlock.split("/");
-    onSave({ ...data, cidrBlock: base, prefixLength: prefix });
+    console.log("OnSubmit  vpcNode data:", data);
+
+    onSave({
+      ...data,
+      cidrBlock: base,
+      prefixLength: Number(prefix)
+      // opcional: region: defaultRegion
+    });
   };
 
   return (
@@ -37,7 +74,7 @@ const VPCNodeForm = ({ nodeData, onSave, deleteNode }) => {
       </FormControl>
 
       <TextField
-        label="Nombre de la VPC"
+        label="VPC Name"
         {...register("vpcName")}
         error={!!errors.vpcName}
         helperText={errors.vpcName?.message}
@@ -46,17 +83,36 @@ const VPCNodeForm = ({ nodeData, onSave, deleteNode }) => {
       />
 
       <TextField
-        label="CIDR Block (ej: 192.168.0.0/24)"
+        label={`VPC's CIDR Block (inside of ${vlanCidr || 'VLAN'})`}
         {...register("cidrBlock")}
         error={!!errors.cidrBlock}
         helperText={errors.cidrBlock?.message}
+        placeholder="10.0.1.0/24"
         fullWidth
+        margin="normal"
       />
+
+      <FormControl fullWidth margin="normal">
+        <InputLabel id="vpc-region-label">Region</InputLabel>
+        <Select
+          labelId="vpc-region-label"
+          {...register("region")}
+          label="Region"
+          defaultValue={defaultRegion}
+        >
+          <MenuItem value="us-east-1">US East (N. Virginia)</MenuItem>
+          <MenuItem value="us-west-1">US West (N. California)</MenuItem>
+          <MenuItem value="us-west-2">US West (Oregon)</MenuItem>
+        </Select>
+        {errors.region && <p>{errors.region.message}</p>}
+      </FormControl>
 
       <Button type="submit" variant="contained" color="primary">
         Registrar Configuración
       </Button>
-      <Button onClick={deleteNode}>Delete Node</Button>
+      <Button onClick={deleteNode} sx={{ ml: 1 }}>
+        Delete Node
+      </Button>
     </form>
   );
 };

@@ -71,10 +71,6 @@ import useRestrictMovement from "./flow-hooks/useRestrictMovement";
 import { useRestrictSubnetsInsideVPC } from "./flow-hooks/useRestrictSubnetsInsideVPC";
 
 
-
-
-//const connectionLineStyle = { stroke: "white" };
-
 const nodeTypes = {
     vpc: VPCNodeInstance,
     subnetwork: SubNetworkNodeInstance,
@@ -122,10 +118,7 @@ const style = {
 };
 
 
-const connectionLineStyle = {
-    strokeWidth: 3,
-    stroke: 'black',
-};
+const connectionLineStyle = { strokeWidth: 2, stroke: '#0f182e' };
 
 // eslint-disable-next-line react-refresh/only-export-components
 function MainFlow() {
@@ -385,7 +378,7 @@ function MainFlow() {
                         ref={reactFlowWrapper} >
                         <ReactFlow
                             nodes={nodes}
-                            edges={edges.map(edge => ({ ...edge, style: connectionLineStyle }))}
+                            edges={edges.map(e => ({ ...e, style: connectionLineStyle, animated: true }))}
                             onNodesChange={onNodesChange}
                             onEdgesChange={onEdgesChange}
                             onNodeClick={onNodeClick}

@@ -2,22 +2,23 @@
 import { createTheme } from '@mui/material/styles';
 
 const colors = {
-  bg:        '#0f1220',
-  panel:     '#11182b',
-  panel2:    '#0b1120',
-  border:    '#223355',
-  text:      '#e8eefc',
-  subtext:   '#a6b2cf',
-  cyan:      '#2cd9ff',
-  blue:      '#3a7afe',
-  green:     '#2ecc71',
-  yellow:    '#f1c40f',
-  red:       '#e74c3c',
+  bg: '#f5f7fa',            // fondo general claro
+  panel: '#ffffff',         // panel blanco
+  panel2: '#f0f3f8',        // panel alterno
+  border: '#d9dee6',        // bordes suaves
+  text: '#1a1d29',          // texto principal oscuro
+  subtext: '#5a6275',       // texto secundario gris
+
+  blue: '#2f6fed',
+  cyan: '#26b4d7',
+  green: '#28a745',
+  yellow: '#f0b429',
+  red: '#e55353',
 };
 
 const theme = createTheme({
   palette: {
-    mode: 'dark',
+    mode: 'light',
     background: { default: colors.bg, paper: colors.panel },
     text: { primary: colors.text, secondary: colors.subtext },
     primary: { main: colors.blue },
@@ -27,90 +28,63 @@ const theme = createTheme({
     error: { main: colors.red },
     divider: colors.border,
   },
-  shape: { borderRadius: 12 },
+  shape: { borderRadius: 8 },
   typography: {
     fontFamily: [
-      'Inter','ui-sans-serif','system-ui','-apple-system',
-      'Segoe UI','Roboto','Ubuntu','Cantarell','Noto Sans',
-      'Helvetica','Arial'
+      'Inter', 'ui-sans-serif', 'system-ui', '-apple-system',
+      'Segoe UI', 'Roboto', 'Ubuntu', 'Cantarell', 'Noto Sans',
+      'Helvetica', 'Arial'
     ].join(','),
     button: { textTransform: 'none', fontWeight: 600, letterSpacing: .2 },
   },
   components: {
     MuiCssBaseline: {
       styleOverrides: `
-        html, body, #root { background: radial-gradient(1200px 600px at 10% -10%, rgba(18,38,82,.45), transparent 60%), ${colors.bg}; }
-        ::selection { background: rgba(44,217,255,.25); }
-        /* React Flow grid más "tech" */
+        html, body, #root {
+          background: ${colors.bg};
+        }
+        ::selection {
+          background: rgba(47,111,237,.15);
+        }
+        /* Lienzo claro */
         .react-flow__background {
-          background-color: #0f1220 !important;
+          background-color: ${colors.panel2} !important;
         }
         .react-flow__background svg path {
-          stroke: rgba(86, 106, 160, .18) !important; /* líneas del grid */
+          stroke: rgba(90, 98, 117, .08) !important;
         }
         /* Paneles flotantes */
         .pt-panel {
-          background: linear-gradient(180deg, ${colors.panel}, ${colors.panel2});
+          background: ${colors.panel};
           border: 1px solid ${colors.border};
-          border-radius: 14px;
-          box-shadow: 0 10px 28px rgba(7, 14, 30, .5);
+          border-radius: 8px;
+          box-shadow: 0 4px 16px rgba(0,0,0,.06);
         }
-        /* Botón PT base (gradiente) */
+        /* Botones base */
         .pt-btn {
-          background: linear-gradient(180deg, #2a5fff, #1343c7);
-          color: #e9f0ff;
-          border: 1px solid #1740a8;
-          border-radius: 12px;
-          box-shadow: 0 6px 16px rgba(19,67,199,.35), inset 0 1px 0 rgba(255,255,255,.15);
+          background: linear-gradient(180deg, ${colors.blue}, #1f56c3);
+          color: #fff;
+          border: 1px solid #1f56c3;
+          border-radius: 6px;
         }
-        .pt-btn:hover { filter: brightness(1.08); box-shadow: 0 10px 24px rgba(19,67,199,.45); }
+        .pt-btn:hover {
+          filter: brightness(1.05);
+        }
+        /* Botones por estado */
         .pt-btn--green {
-          background: linear-gradient(180deg, #2ecc71, #1f9d53);
-          border-color: #1f9d53;
+          background: linear-gradient(180deg, ${colors.green}, #1d7f38);
+          border-color: #1d7f38;
         }
         .pt-btn--yellow {
-          background: linear-gradient(180deg, #f1c40f, #c9a00a);
-          color: #0d101a;
-          border-color: #b38c09;
+          background: linear-gradient(180deg, ${colors.yellow}, #c79421);
+          color: ${colors.text};
+          border-color: #c79421;
         }
         .pt-btn--red {
-          background: linear-gradient(180deg, #e74c3c, #c0392b);
-          border-color: #ab3324;
+          background: linear-gradient(180deg, ${colors.red}, #b83c3c);
+          border-color: #b83c3c;
         }
-        .pt-toolbar {
-          display: flex; gap: 10px; padding: 10px;
-          align-items: center; justify-content: flex-end;
-        }
-        .pt-toolbar__group { display: flex; gap: 8px; }
-        .pt-toolbar__title {
-          margin-right: auto; font-weight: 700; letter-spacing:.3px; color: ${colors.text};
-        }
-        /* Icon buttons estilo PT */
-        .pt-ibtn {
-          background: rgba(255,255,255,.06);
-          border: 1px solid ${colors.border};
-          color: ${colors.text};
-          border-radius: 10px;
-        }
-        .pt-ibtn:hover { border-color: ${colors.cyan}; }
       `
-    },
-    MuiPaper: {
-      styleOverrides: {
-        root: {
-          background: `linear-gradient(180deg, ${colors.panel}, ${colors.panel2})`,
-          border: `1px solid ${colors.border}`,
-        }
-      }
-    },
-    MuiButton: {
-      defaultProps: { disableElevation: true, size: 'small' },
-      styleOverrides: {
-        root: {
-          borderRadius: 12,
-          paddingInline: 14,
-        }
-      }
     }
   }
 });

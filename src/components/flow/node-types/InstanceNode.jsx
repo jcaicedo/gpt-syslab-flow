@@ -1,35 +1,37 @@
+// src/components/flow/node-types/InstanceNode.jsx
 /* eslint-disable react/prop-types */
 import { memo } from 'react';
-import { Handle, Position } from "@xyflow/react";
-import '../styles/packet-tracer.css';     // asegúrate de importar donde pusiste el CSS
+import NodeChrome from './NodeChrome';
+import '../styles/packet-tracer.css';
 import { getIconByInstanceType } from '../helper/iconHelper';
+import { TYPE_COMPUTER_NODE, TYPE_PRINTER_NODE, TYPE_SERVER_NODE } from '../utils/constants';
 
-const InstanceNode = ({ data = {}, type, isConnectable }) => {
-  const name  = data.name || data.title || 'Instance';
-  const ip    = data.ipAddress || 'IP n/a';
-  const state = data.down ? 'down' : (data.warn ? 'warn' : 'up');
+const InstanceNode = ({ data = {}, type }) => {
+  const name = data.name || data.title || 'Instance';
+  const ip = data.ipAddress || 'IP n/a';
+  const ami = data.ami || 'AMI n/a';
+  const itype = data.instanceType || 'type n/a';
+
+  let kind = 'pc';
+  if (type === TYPE_SERVER_NODE) kind = 'server';
+  if (type === TYPE_PRINTER_NODE) kind = 'printer';
 
   return (
-    <div style={{ width: 120, height: 130, display:'grid', placeItems:'center' }}>
-      {/* Dispositivo */}
-      <div className="pt-device">
-        <div className={`pt-device__led ${state === 'down' ? 'pt-device__led--down' : state === 'warn' ? 'pt-device__led--warn' : ''}`} />
-        <div className="pt-device__icon">
-          {getIconByInstanceType?.(type)}
+    <div style={{ width:'100%', height:'100%' }}>
+      <NodeChrome
+        type={`inst ${kind}`}             // << añade la subclase
+        title={name}
+        subtitle={`${ip} • ${itype}`}
+        status="up"
+        rightArea={<span className="pt-badge">{ami}</span>}
+      >
+        <div className="pt-badges" style={{ display:'flex', alignItems:'center', gap:8 }}>
+          <span className="pt-badge">ENI-0</span>
+          <span className="pt-badge">SSH {data?.sshAccess ? 'Yes' : 'No'}</span>
+          <div style={{ marginLeft:'auto' }}>{getIconByInstanceType?.(type)}</div>
         </div>
-
-        {/* Puertos/handles triangulares (puedes dejar 2 o 4 según la vista que quieras) */}
-        <Handle type="source" position={Position.Top}    className="pt-handle-tri pt-handle-tri--on"    isConnectable={isConnectable} />
-        <Handle type="target" position={Position.Bottom} className="pt-handle-tri pt-handle-tri--on"    isConnectable={isConnectable} />
-        <Handle type="target" position={Position.Left}   className="pt-handle-tri pt-handle-tri--on"    isConnectable={isConnectable} />
-        <Handle type="source" position={Position.Right}  className="pt-handle-tri pt-handle-tri--on"    isConnectable={isConnectable} />
-      </div>
-
-      {/* Etiquetas */}
-      <div className="pt-device__label">{name}</div>
-      <div className="pt-device__sublabel">{ip}</div>
+      </NodeChrome>
     </div>
   );
 };
-
 export default memo(InstanceNode);

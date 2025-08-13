@@ -1,32 +1,82 @@
-/* ---------- Packet Tracer inspired UI ---------- */
-:root {
-    --pt-bg: #0f1220;
-    --pt-card: #182033;
-    --pt-card-2: #111729;
-    --pt-border: #26324d;
-    --pt-text: #e8eefc;
-    --pt-subtext: #a6b2cf;
+/* Overrides para modo oscuro activando .theme-dark en <body> */
+.theme-dark {
+    --pt-bg: #0c1118;
+    --pt-card: #101727;
+    --pt-card-2: #0c1423;
+    --pt-border: #1a2438;
+    --pt-text: #e7ebf6;
+    --pt-subtext: #9fb0c9;
+
     --pt-green: #2ecc71;
-    --pt-yellow: #f1c40f;
-    --pt-red: #e74c3c;
-    --pt-blue: #3a7afe;
-    --pt-cyan: #2cd9ff;
+    --pt-yellow: #f5c451;
+    --pt-red: #ff6b6b;
+    --pt-cyan: #34c6f3;
 
-    --pt-vpc: linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%);
-    --pt-subnet: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
-    --pt-instance: linear-gradient(135deg, #a855f7 0%, #7c3aed 100%);
-    --pt-router: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+    --pt-vpc: #4b82ff;
+    --pt-subnet: #16b39a;
+    --pt-inst-pc: #6f9bff;
+    --pt-inst-sv: #9aa2ff;
+    --pt-inst-pr: #67c7f5;
+    --pt-router: #ff9a6a;
 
-    --pt-radius: 16px;
-    --pt-shadow: 0 6px 18px rgba(6, 14, 30, 0.35);
-    --pt-shadow-strong: 0 12px 30px rgba(6, 14, 30, 0.55);
+    --pt-radius: 14px;
+    --pt-shadow: 0 6px 16px rgba(5, 12, 25, .28);
+    --pt-shadow-strong: 0 12px 28px rgba(5, 12, 25, .45);
+}
+
+
+/* ---------- Packet Tracer inspired UI — LIGHT THEME ---------- */
+:root {
+    /* Base (light) */
+    --pt-bg: #f5f7fa;
+    --pt-card: #ffffff;
+    --pt-card-2: #ffffff;
+    /* en claro mantenemos uniforme */
+    --pt-border: #d9dee6;
+    --pt-text: #1a1d29;
+    --pt-subtext: #5a6275;
+
+    /* Estados */
+    --pt-green: #28a745;
+    --pt-yellow: #f0b429;
+    --pt-red: #e55353;
+    --pt-cyan: #26b4d7;
+
+    /* Acentos por tipo (claros, legibles en blanco) */
+    --pt-vpc: #2f6fed;
+    /* azul */
+    --pt-subnet: #26b4d7;
+    /* cyan/teal */
+    --pt-inst-pc: #4b8bff;
+    /* azul suave */
+    --pt-inst-sv: #8d92ff;
+    /* violeta suave */
+    --pt-inst-pr: #3dc8d0;
+    /* celeste/teal */
+    --pt-router: #ff9a6a;
+    /* naranja */
+
+    --pt-radius: 10px;
+    --pt-shadow: 0 6px 16px rgba(0, 0, 0, .06);
+    --pt-shadow-strong: 0 10px 24px rgba(0, 0, 0, .10);
+}
+
+/* ---------- Node chrome ---------- */
+
+/* cuerpo interno sobrio */
+.pt-node__body {
+    padding: 10px 12px 12px;
+    background: #f8fafd;
+    /* leve contraste sobre blanco */
+    border-radius: 8px;
+    border: 1px solid #ecf0f6;
 }
 
 /* Base de nodos */
 .pt-node {
     position: relative;
     border-radius: var(--pt-radius);
-    background: linear-gradient(180deg, var(--pt-card), var(--pt-card-2));
+    background: var(--pt-card);
     color: var(--pt-text);
     border: 1px solid var(--pt-border);
     box-shadow: var(--pt-shadow);
@@ -43,26 +93,27 @@
 }
 
 .react-flow__node.selected .pt-node {
-    border-color: var(--pt-cyan);
-    box-shadow: 0 0 0 3px rgba(44, 217, 255, 0.2), var(--pt-shadow-strong);
+    border-color: #2f6fed;
+    box-shadow: 0 0 0 3px rgba(47, 111, 237, .18), var(--pt-shadow-strong);
 }
 
 /* Header con banda de color */
 .pt-node__header {
     display: grid;
-    grid-template-columns: 24px 1fr auto;
+    grid-template-columns: 6px 1fr auto;
     align-items: center;
-    gap: 10px;
+    column-gap: 10px;
     padding: 10px 12px;
-    background: rgba(255, 255, 255, 0.03);
-    border-bottom: 1px solid var(--pt-border);
+    background: #f4f6fb;
+    /* gris muy claro */
+    border-bottom: 1px solid #edf1f6;
 }
 
 .pt-node__stripe {
     width: 6px;
-    height: 24px;
+    height: 20px;
     border-radius: 999px;
-    background: var(--pt-blue);
+    background: var(--pt-vpc);
 }
 
 /* Título + subtítulo */
@@ -70,6 +121,7 @@
     font-weight: 600;
     letter-spacing: .2px;
     line-height: 1.1;
+    color: var(--pt-text);
 }
 
 .pt-node__subtitle {
@@ -92,7 +144,7 @@
     height: 10px;
     border-radius: 999px;
     background: var(--pt-green);
-    box-shadow: 0 0 8px rgba(46, 204, 113, .7);
+    box-shadow: 0 0 0 3px rgba(40, 167, 69, .12);
     animation: pt-led 1.6s ease-in-out infinite;
 }
 
@@ -105,24 +157,19 @@
     }
 
     50% {
-        transform: scale(1.05);
-        filter: brightness(1.2);
+        transform: scale(1.06);
+        filter: brightness(1.15);
     }
 }
 
 .pt-led--warn .pt-led__dot {
     background: var(--pt-yellow);
-    box-shadow: 0 0 8px rgba(241, 196, 15, .7);
+    box-shadow: 0 0 0 3px rgba(240, 180, 41, .12);
 }
 
 .pt-led--down .pt-led__dot {
     background: var(--pt-red);
-    box-shadow: 0 0 8px rgba(231, 76, 60, .7);
-}
-
-/* Body */
-.pt-node__body {
-    padding: 10px 12px 12px;
+    box-shadow: 0 0 0 3px rgba(229, 83, 83, .12);
 }
 
 /* Badges de puertos/info */
@@ -135,11 +182,11 @@
 
 .pt-badge {
     font-size: 11px;
-    color: var(--pt-text);
-    border: 1px solid var(--pt-border);
+    color: #324156;
+    border: 1px solid #e1e7f0;
     padding: 2px 8px;
     border-radius: 999px;
-    background: rgba(255, 255, 255, 0.03);
+    background: #f7f9fc;
 }
 
 /* Toolbelt superior-derecha */
@@ -152,17 +199,18 @@
     cursor: pointer;
     padding: 6px 10px;
     border-radius: 8px;
-    border: 1px solid var(--pt-border);
-    background: rgba(255, 255, 255, 0.04);
-    color: var(--pt-text);
+    border: 1px solid #e1e7f0;
+    background: #f7f9fc;
+    color: #2b3a50;
     font-size: 12px;
 }
 
 .pt-btn:hover {
-    border-color: var(--pt-cyan);
+    border-color: #2f6fed;
+    background: #f2f6ff;
 }
 
-/* Variantes por tipo */
+/* Variantes por tipo (colores de banda) */
 .pt-node--vpc .pt-node__stripe {
     background: var(--pt-vpc);
 }
@@ -171,15 +219,23 @@
     background: var(--pt-subnet);
 }
 
-.pt-node--inst .pt-node__stripe {
-    background: var(--pt-instance);
+.pt-node--inst.pc .pt-node__stripe {
+    background: var(--pt-inst-pc);
+}
+
+.pt-node--inst.server .pt-node__stripe {
+    background: var(--pt-inst-sv);
+}
+
+.pt-node--inst.printer .pt-node__stripe {
+    background: var(--pt-inst-pr);
 }
 
 .pt-node--router .pt-node__stripe {
     background: var(--pt-router);
 }
 
-/* Tamaños sugeridos (solo mínimos para no romper el resizer) */
+/* Tamaños sugeridos (min-only para respetar resizer) */
 .pt-size--vpc {
     min-width: 520px;
     min-height: 220px;
@@ -200,33 +256,98 @@
     min-height: 110px;
 }
 
-/* Hace que el chrome ocupe 100% del wrapper del nodo (que maneja React Flow) */
+/* Fill del wrapper del nodo (React Flow controla el tamaño externo) */
 .pt-fill {
     width: 100%;
     height: 100%;
 }
 
+/* ---------- Handles ---------- */
 
-/* Handler points (si usas handles custom) */
+/* Handler points redondos (contenedores: VPC/Subnet/Router-card) */
 .pt-handle {
     width: 10px;
     height: 10px;
-    background: var(--pt-cyan);
-    border: 2px solid #07212f;
+    background: #2f6fed;
+    /* azul consistente */
+    border: 2px solid #ffffff;
+    /* contraste en claro */
     border-radius: 999px;
-    box-shadow: 0 0 0 2px rgba(44, 217, 255, .25);
+    box-shadow: 0 0 0 2px rgba(47, 111, 237, .18);
 }
 
 /* separa los handles del borde */
 .react-flow__handle {
-  transform: translateY(-2px);
+    transform: translateY(-2px);
 }
+
 .react-flow__handle-bottom {
-  transform: translateY(2px);
+    transform: translateY(2px);
 }
+
 .react-flow__handle-left {
-  transform: translateX(-2px);
+    transform: translateX(-2px);
 }
+
 .react-flow__handle-right {
-  transform: translateX(2px);
+    transform: translateX(2px);
+}
+
+/* ---------- Helpers específicos (opcionales) ---------- */
+
+/* Atenuar borde al deshabilitar (si lo usas) */
+.pt-node.is-disabled {
+    opacity: .6;
+    filter: grayscale(.1);
+}
+
+/* Un poco más de contraste al seleccionar texto dentro del modal */
+::selection {
+    background: rgba(47, 111, 237, .18);
+}
+
+
+/* === Toolbar === */
+.pt-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px;
+    flex-wrap: nowrap;
+    white-space: nowrap;
+    width: 100%;
+    overflow-x: auto;
+    scrollbar-width: thin;
+}
+
+.pt-toolbar__title {
+    flex: 0 0 auto;
+    font-weight: 700;
+    letter-spacing: .3px;
+}
+
+.pt-toolbar__group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 0 0 auto;
+}
+
+.pt-toolbar__spacer {
+    flex: 1 1 auto;
+    min-width: 8px;
+}
+
+.pt-btn {
+    white-space: nowrap;
+    min-width: 0;
+    padding-inline: 12px;
+}
+
+.pt-ibtn {
+    flex: 0 0 auto;
+}
+
+.pt-panel {
+    width: 100%;
 }

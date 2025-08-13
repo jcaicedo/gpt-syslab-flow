@@ -5,6 +5,7 @@ import { ThemeProvider } from '@emotion/react'
 import { CssBaseline } from '@mui/material'
 // import { darkTheme } from './styles/theme.js'
 import theme from './theme/packetTracerTheme';
+import AppThemeProvider from './theme/AppThemeProvider.jsx'
 
 
 // const darkTheme = createTheme({
@@ -25,10 +26,9 @@ import theme from './theme/packetTracerTheme';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
 
-  <ThemeProvider theme={theme}>
-    <CssBaseline />
+   <AppThemeProvider>
     <App />
-  </ThemeProvider>
+  </AppThemeProvider>
 
   ,
 )

@@ -29,6 +29,7 @@ const SidebarFlow = () => {
 
     const onDragStart = (event, nodeType, key) => {
         event.dataTransfer.setData('application/reactflow', nodeType);
+        event.dataTransfer.setData('text/plain', nodeType);
         event.dataTransfer.effectAllowed = 'move';
         setDragging(key);
     };
@@ -42,18 +43,21 @@ const SidebarFlow = () => {
                 {ITEMS.map(({ key, type, label, icon }) => (
                     <div
                         key={key}
-                     
+                        data-key={key}                              // 👈 necesario para color del dot
                         className={`pt-sidebar__item ${dragging === key ? 'pt-sidebar__item--active' : ''}`}
                         draggable
                         onDragStart={(e) => onDragStart(e, type, key)}
                         onDragEnd={onDragEnd}
                         title={label}
+                        role="button"
+                        tabIndex={0}
                     >
                         <span className="pt-sidebar__icon">{icon}</span>
                         <span className="pt-sidebar__label">{label}</span>
                     </div>
                 ))}
             </div>
+
         </Box>
     );
 };

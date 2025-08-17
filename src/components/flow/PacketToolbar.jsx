@@ -41,11 +41,12 @@ export default function PacketToolbar({
 
                 {/* Botones de acción */}
                 <div className="pt-toolbar__group">
-                    <Button className="pt-btn" startIcon={<SaveIcon />} onClick={onSave} sx={{ px: 1.5 }}>Save</Button>
-                    <Button className="pt-btn" startIcon={<RestoreIcon />} onClick={onRestore} sx={{ px: 1.5 }}>Restore</Button>
-                    <Button className="pt-btn pt-btn--yellow" startIcon={<RestartAltIcon />} onClick={onRestoreInitial} sx={{ px: 1.5 }}>Restore Initial</Button>
-                    <Button className="pt-btn pt-btn--green" startIcon={<PlayArrowIcon />} onClick={onDeploy} sx={{ px: 1.5 }}>Deploy</Button>
+                    <Button variant="outlined" className="pt-btn" startIcon={<SaveIcon />} onClick={onSave} size="small">Save</Button>
+                    <Button variant="outlined" className="pt-btn" startIcon={<RestoreIcon />} onClick={onRestore} size="small">Restore</Button>
+                    <Button variant="outlined" className="pt-btn pt-btn--yellow" startIcon={<RestartAltIcon />} onClick={onRestoreInitial} size="small">Restore Initial</Button>
+                    <Button variant="outlined" className="pt-btn pt-btn--green" startIcon={<PlayArrowIcon />} onClick={onDeploy} size="small">Deploy</Button>
                 </div>
+
             </div>
         </div>
     );

@@ -1,85 +1,132 @@
 /* eslint-disable react/prop-types */
-import { useState } from "react";
-import { Button, Checkbox, FormControlLabel, Stack, TextField } from "@mui/material";
-import { useForm } from "react-hook-form";
-import { yupResolver } from "@hookform/resolvers/yup";
-import { useFormValidationSchema } from "./validations/useFormValidations";
-import { TYPE_ROUTER_NODE } from "../utils/constants";
-import RouteTableFormFullScreen from "./RouteTableFormFullScreen";
+import { useEffect, useMemo, useState } from "react";
+import { Box, Button, Divider, IconButton, MenuItem, Select, Stack, TextField, Typography } from "@mui/material";
+import DeleteOutline from "@mui/icons-material/DeleteOutline";
 
-
-const RouterNodeForm = ({
-  node,                 // <-- pásame el nodo completo (selectedNode)
+export default function RouterNodeForm({
   nodeData = {},
   onSave,
   deleteNode,
+  connectedVpcs = [],       // [{id, name, cidr}]
   vlanRegion = "us-east-1",
-}) => {
-  const [openRouteTable, setOpenRouteTable] = useState(false);
-  const schema = useFormValidationSchema(TYPE_ROUTER_NODE);
+}) {
+  // Carga inicial (si ya había rutas)
+  const [routes, setRoutes] = useState(() => Array.isArray(nodeData.routeTable) ? nodeData.routeTable : []);
 
-  const { register, handleSubmit, formState: { errors } } = useForm({
-    resolver: yupResolver(schema),
-    defaultValues: {
-      identifier: nodeData.identifier || "router-1",
+  // Asegura que las rutas apunten a VPCs existentes (por si desconectaste algo)
+  useEffect(() => {
+    setRoutes(prev => prev.filter(r =>
+      connectedVpcs.some(v => v.id === r.sourceVpcId) &&
+      (r.destVpcId ? connectedVpcs.some(v => v.id === r.destVpcId) : true)
+    ));
+  }, [connectedVpcs]);
+
+  const canAdd = connectedVpcs.length >= 2;
+
+  const addRoute = () => {
+    if (!canAdd) return;
+    const src = connectedVpcs[0];
+    const dst = connectedVpcs.find(v => v.id !== src.id) || connectedVpcs[0];
+    setRoutes(r => [...r, {
+      sourceVpcId: src.id,
+      destVpcId: dst.id,
+      destCidr: dst.cidr || "",
+    }]);
+  };
+
+  const updateRoute = (idx, patch) => {
+    setRoutes(r => {
+      const next = [...r];
+      next[idx] = { ...next[idx], ...patch };
+      // si cambia el destVpcId, sincroniza destCidr con el CIDR de esa VPC
+      if (patch.destVpcId) {
+        const v = connectedVpcs.find(v => v.id === patch.destVpcId);
+        next[idx].destCidr = v?.cidr || "";
+      }
+      return next;
+    });
+  };
+
+  const removeRoute = (idx) => {
+    setRoutes(r => r.filter((_, i) => i !== idx));
+  };
+
+  const handleSave = () => {
+    // Guarda dentro del router como "routeTable"
+    onSave({
+      ...nodeData,
+      routeTable: routes,
       region: nodeData.region || vlanRegion,
-      internetGateway: !!nodeData.internetGateway,
-      natGateway: !!nodeData.natGateway,
-      description: nodeData.description || ""
-    }
-  });
-
-  const submit = (data) => onSave(data);
+    });
+  };
 
   return (
-    <>
-      <form onSubmit={handleSubmit(submit)}>
-        <Stack spacing={2}>
-          <TextField
-            label="Identifier"
-            {...register("identifier")}
-            error={!!errors.identifier}
-            helperText={errors.identifier?.message}
-            fullWidth
-          />
-          <TextField
-            label="Region"
-            {...register("region")}
-            error={!!errors.region}
-            helperText={errors.region?.message}
-            fullWidth
-          />
-          <TextField
-            label="Description"
-            {...register("description")}
-            error={!!errors.description}
-            helperText={errors.description?.message}
-            fullWidth
-            multiline
-            minRows={2}
-          />
-          <FormControlLabel control={<Checkbox {...register("internetGateway")} />} label="Internet Gateway" />
-          <FormControlLabel control={<Checkbox {...register("natGateway")} />} label="NAT Gateway" />
+    <Box>
+      <Typography variant="h6" gutterBottom>Router</Typography>
+      <Typography variant="body2" sx={{ mb: 1 }}>
+        VPCs conectadas a este router: {connectedVpcs.length || 0}
+      </Typography>
 
-          <Stack direction="row" spacing={1}>
-            <Button type="submit" variant="contained">Guardar</Button>
-            <Button onClick={deleteNode} color="error">Eliminar</Button>
-            <Button variant="outlined" onClick={() => setOpenRouteTable(true)}>
-              Editar Route Table (full)
-            </Button>
+      <Divider sx={{ my: 1 }} />
+
+      {!canAdd && (
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+          Conecta al menos <b>dos VPC</b> a este router para poder definir rutas.
+        </Typography>
+      )}
+
+      {routes.map((r, idx) => {
+        const src = connectedVpcs.find(v => v.id === r.sourceVpcId);
+        const dst = connectedVpcs.find(v => v.id === r.destVpcId);
+        return (
+          <Stack key={idx} direction="row" gap={1} alignItems="center" sx={{ mb: 1 }}>
+            <Select
+              size="small"
+              value={r.sourceVpcId || ""}
+              onChange={(e) => updateRoute(idx, { sourceVpcId: e.target.value })}
+              sx={{ minWidth: 160 }}
+            >
+              {connectedVpcs.map(v => (
+                <MenuItem key={v.id} value={v.id}>{v.name}</MenuItem>
+              ))}
+            </Select>
+
+            <Typography variant="body2">→</Typography>
+
+            <Select
+              size="small"
+              value={r.destVpcId || ""}
+              onChange={(e) => updateRoute(idx, { destVpcId: e.target.value })}
+              sx={{ minWidth: 160 }}
+            >
+              {connectedVpcs
+                .filter(v => v.id !== r.sourceVpcId) // evita mismo origen=destino
+                .map(v => (
+                  <MenuItem key={v.id} value={v.id}>{v.name}</MenuItem>
+                ))}
+            </Select>
+
+            <TextField
+              size="small"
+              label="dest CIDR"
+              value={r.destCidr || ""}
+              onChange={(e) => updateRoute(idx, { destCidr: e.target.value })}
+              sx={{ minWidth: 180 }}
+            />
+
+            <IconButton onClick={() => removeRoute(idx)}>
+              <DeleteOutline />
+            </IconButton>
           </Stack>
-        </Stack>
-      </form>
+        );
+      })}
 
-      {/* Full-screen ahora es LOCAL al form */}
-      <RouteTableFormFullScreen
-        openModalRouteTable={openRouteTable}
-        handleOpenDialog={() => setOpenRouteTable(false)}
-        node={node}          // <- necesita el nodo seleccionado
-        onSave={onSave}
-      />
-    </>
+      <Stack direction="row" gap={1} sx={{ mt: 1 }}>
+        <Button variant="outlined" onClick={addRoute} disabled={!canAdd}>+ Ruta</Button>
+        <Box sx={{ flex: 1 }} />
+        <Button variant="contained" onClick={handleSave}>Guardar</Button>
+        <Button color="error" onClick={deleteNode}>Delete Node</Button>
+      </Stack>
+    </Box>
   );
-};
-
-export default RouterNodeForm;
+}

@@ -29,7 +29,7 @@ const SubNetworkNodeForm = ({
         true // activa validación CIDR      
     )
 
-    const { register, handleSubmit, formState: { errors } } = useForm({
+    const { register, handleSubmit, formState: { errors }, reset } = useForm({
         resolver: yupResolver(validationSchema),
         defaultValues: {
             subnetName: nodeData.subnetName || "",
@@ -38,6 +38,15 @@ const SubNetworkNodeForm = ({
             route_table: nodeData.route_table || ""
         }
     });
+
+    useEffect(() => {
+        reset({
+            subnetName: nodeData.subnetName || "",
+            cidrBlock: nodeData.cidrBlock || "",
+            availabilityZone: nodeData.availabilityZone || "",
+            route_table: nodeData.route_table || ""
+        });
+    }, [nodeData, reset]);
 
     const onSubmit = (data) => {
         console.log("OnSubmit  subNetwork data:", data);
@@ -84,9 +93,9 @@ const SubNetworkNodeForm = ({
                     <MenuItem value="public">Public</MenuItem>
                     <MenuItem value="private">Private</MenuItem>
                 </Select>
-                 {errors.route_table && <p>{errors.route_table.message}</p>}
+                {errors.route_table && <p>{errors.route_table.message}</p>}
             </FormControl>
-           
+
 
             <Button type="submit" variant="contained" color="primary">
                 Registrar Configuración

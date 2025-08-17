@@ -1,10 +1,10 @@
 import { addDoc, collection } from 'firebase/firestore'
 import { db } from '../../../firebase/firebaseConfig'
-import { Box, Modal} from '@mui/material'
-import NewVPCForm from '../forms/NewVPCForm';
+import { Box, Modal } from '@mui/material'
 import { useContext } from 'react';
 import { LoadingFlowContext } from '../../../contexts/LoadingFlowContext';
 import { useAuth } from '../../../contexts/AuthContext';
+import NewVLANForm from '../forms/NewVLANForm';
 
 const style = {
     position: 'absolute',
@@ -20,37 +20,38 @@ const style = {
 
 // eslint-disable-next-line react/prop-types
 const CreateVPCModal = ({ open, onClose }) => {
-    const{setLoadingFlow,loadingFlow} = useContext(LoadingFlowContext)
-    const {user} = useAuth()
-    const userId= user.userId
+    const { setLoadingFlow, loadingFlow } = useContext(LoadingFlowContext)
+    const { user } = useAuth()
+    const userId = user.userId
 
     const handleCreateVPC = async (vpcData) => {
-       // console.log("loadingFlow",loadingFlow);
-       
+        // console.log("loadingFlow",loadingFlow);
+
         setLoadingFlow(true)
-        const {vpcName,cloudProvider, cidrBlock, prefixLength} = vpcData
-        
-        if (vpcName && cloudProvider && cidrBlock, prefixLength) {
+        const { vlanName, cloudProvider, cidrBlock, prefixLength, type } = vpcData
+
+        if (vlanName && cloudProvider && cidrBlock && prefixLength && type) {
 
             try {
                 const vpcDoc = await addDoc(collection(db, 'vpcs'), {
-                    name: vpcName,
+                    name: vlanName,
                     cloudProvider,
                     cidrBlock,
                     userId,
-                    prefixLength
+                    prefixLength,
+                    type
                 })
                 onClose(vpcDoc.id, cidrBlock, prefixLength)
             } catch (error) {
-                // console.log(error);
+                console.error("Error creating VPC:", error)
             }
-            
-        }else{
-            // console.log("Error: Missing VPC name or cloud type")
+
+        } else {
+            console.error("Error: Missing VPC name or cloud type")
         }
     }
 
-  
+
 
     return (
         <Modal
@@ -61,28 +62,8 @@ const CreateVPCModal = ({ open, onClose }) => {
         >
 
             <Box sx={{ ...style, width: 400 }}>
-                <NewVPCForm onSave={handleCreateVPC}/>
-                {/* <h2>Crear Nueva VPC</h2>
-                <TextField
-                    label="Nombre de la VPC"
-                    value={vpcName}
-                    onChange={(e) => setVPCName(e.target.value)}
-                    fullWidth
-                    margin="normal"
-                />
-
-                <Select
-                    value={cloudType}
-                    onChange={(e) => setCloudType(e.target.value)}
-                    fullWidth
-                    margin="normal"
-                >
-                    <MenuItem value="AWS">AWS</MenuItem>
-                    <MenuItem value="GCP" >GCP</MenuItem>
-                </Select>
-                <Button onClick={handleCreateVPC} variant='contained' color='primary' >
-                    Crear VPC
-                </Button> */}
+                {/* <NewVPCForm onSave={handleCreateVPC}/> */}
+                <NewVLANForm onSave={handleCreateVPC} />
             </Box>
         </Modal>
     )

@@ -1,33 +1,39 @@
-/* eslint-disable react/prop-types */
 import { memo } from 'react';
-import { NodeResizer } from "@xyflow/react";
-import './styles/SubNetworkNode.css'
-import { Box, Paper, Typography } from '@mui/material';
+import { Handle, Position, NodeResizer } from "@xyflow/react";
+import NodeChrome from './NodeChrome';
+import '../styles/packet-tracer.css';
 
-// eslint-disable-next-line react/prop-types, react-refresh/only-export-components
-function SubNetworkNodeInstance({ data }) {
+function SubNetworkNodeInstance({ data = {}, isConnectable }) {
+  const title = data.subnetName || data.title || 'SubNetwork';
+  const cidr = data.cidrBlock || 'CIDR n/a';
+  const az = data.availabilityZone || 'AZ n/a';
+  const rt = (data.route_table || 'private').toUpperCase();
 
-
-  // eslint-disable-next-line react/prop-types
-  const titleNode = data.title;
   return (
-    <>
-      <Paper className='node-subnetwork' elevation={3}
-        sx={{ position: 'relative', minWidth: 180, minHeight: 100 }}
-        // eslint-disable-next-line react/prop-types
-        style={{ backgroundColor: data.bgNode }}>
-        <NodeResizer minWidth={180} minHeight={100} />
-        <Box sx={{ p: 1, backgroundColor: '#1976d2', color: '#fff' }}>
-          <Typography>{titleNode} {data.subnetName}</Typography>
-        </Box>
-      </Paper>
+    <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+      <NodeResizer minWidth={320} minHeight={120} />
 
+      <div className="pt-fill">
+        <NodeChrome
+          type="subnet"
+          title={title}
+          subtitle={`${cidr} • ${az}`}
+          status={rt === 'PUBLIC' ? 'up' : 'warn'}
+          rightArea={<span className="pt-badge">{rt}</span>}
+        >
+          <div className="pt-badges">
+            <span className="pt-badge">ACL: default</span>
+            <span className="pt-badge">DHCP: auto</span>
+          </div>
+        </NodeChrome>
+      </div>
 
-
-
-    </>
+      {/* Conexiones típicas: Subnet ↔ VPC (arriba) e Instancias ↔ Subnet (laterales) */}
+      {/* <Handle type="source" position={Position.Top} className="pt-handle" isConnectable={isConnectable} />
+      <Handle type="target" position={Position.Top} className="pt-handle" isConnectable={isConnectable} />
+      <Handle type="target" position={Position.Left} className="pt-handle" isConnectable={isConnectable} />
+      <Handle type="source" position={Position.Right} className="pt-handle" isConnectable={isConnectable} /> */}
+    </div>
   );
 }
-
-// eslint-disable-next-line react-refresh/only-export-components
 export default memo(SubNetworkNodeInstance);

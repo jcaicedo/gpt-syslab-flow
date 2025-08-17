@@ -8,99 +8,91 @@ import { useEffect } from 'react';
 import { useNetwork } from '../../../contexts/NetworkNodesContext';
 
 
-const SubNetworkNodeForm = ({ nodeData, onSave, deleteNode, cidrBlockVPC }) => {
+const SubNetworkNodeForm = ({
+    nodeData,
+    onSave,
+    deleteNode,
+    parentVpcCidr,                  // <-- NUEVO (CIDR completo del padre VPC-hija)
+    siblingSubnetCidrsInSameVpc = []// <-- NUEVO
 
-    const { nodes } = useNetwork();
-    const existingCidrs = nodes
-        .filter(n => n.type === TYPE_SUBNETWORK_NODE && n.id !== nodeData.id)
-        .map(n => n.data?.cidrBlock)
-        .filter(Boolean);
+}) => {
+    // descompone el CIDR del padre para el hook (base + prefijo)
 
-        
+    const [vpcBase, vpcPrefixStr] = (parentVpcCidr || "").split("/");
+    const vpcPrefix = vpcPrefixStr ? Number(vpcPrefixStr) : null;
+
     const validationSchema = useFormValidationSchema(
         TYPE_SUBNETWORK_NODE,
-        cidrBlockVPC,
-        null,
-        { existingCidrs }
-    );
+        vpcBase, // <-- pasa base del CIDR del padre
+        vpcPrefix, // <-- pasa prefijo del CIDR del padre
+        { existingCidrs: siblingSubnetCidrsInSameVpc }, // <-- pasa lista de CIDRs existentes
+        true // activa validación CIDR      
+    )
 
-
-
-    useEffect(() => {
-        // console.log("CIDRs existentes en context:", existingCidrs);
-    }, []);
-
-
-
-    const { register, handleSubmit, control, formState: { errors } } = useForm({
-        resolver: yupResolver(validationSchema, { context: { existingCidrs } }),
+    const { register, handleSubmit, formState: { errors } } = useForm({
+        resolver: yupResolver(validationSchema),
         defaultValues: {
-            subnetName: nodeData.subnetName || '',
-            cidrBlock: nodeData.cidrBlock || '',
-            availabilityZone: nodeData.availabilityZone || '',
-            // publicIp: nodeData.publicIp || '',
-            route_table: nodeData.route_table || ''
+            subnetName: nodeData.subnetName || "",
+            cidrBlock: nodeData.cidrBlock || "",
+            availabilityZone: nodeData.availabilityZone || "",
+            route_table: nodeData.route_table || ""
         }
     });
 
-
-    useEffect(() => {
-        // console.log("Errores del formulario:", errors);
-    }, [errors]);
-
     const onSubmit = (data) => {
-        // console.log("Datos enviados:", data);
+        console.log("OnSubmit  subNetwork data:", data);
         onSave(data);
     };
 
     return (
         <form onSubmit={handleSubmit(onSubmit)}>
-            <Stack spacing={2}>
-                <TextField
-                    label="Name"
-                    {...register("subnetName")}
-                    error={!!errors.subnetName}
-                    helperText={errors.subnetName?.message}
-                />
-                <TextField
-                    label="CIDR Block"
-                    {...register("cidrBlock")}
-                    error={!!errors.cidrBlock}
-                    helperText={errors.cidrBlock?.message}
-                />
-                <TextField
-                    label="Availability Zone"
-                    {...register("availabilityZone")}
-                    error={!!errors.availabilityZone}
-                    helperText={errors.availabilityZone?.message}
-                />
-                {/* <TextField
-                    label="Public IP"
-                    {...register("publicIp")}
-                    error={!!errors.publicIp}
-                    helperText={errors.publicIp?.message}
-                /> */}
-                <FormControl fullWidth error={!!errors.route_table}>
-                    <InputLabel>Route Table</InputLabel>
-                    <Controller
-                        name="route_table"
-                        control={control}
-                        render={({ field }) => (
-                            <Select {...field} label="Route Table">
-                                <MenuItem value="public">Public</MenuItem>
-                                <MenuItem value="private">Private</MenuItem>
-                            </Select>
-                        )}
-                    />
-                    {errors.route_table && (
-                        <FormHelperText>{errors.route_table.message}</FormHelperText>
-                    )}
-                </FormControl>
-                <Button type="submit" variant="contained" color="primary">
-                    Registrar Configuración
-                </Button>
-                <Button onClick={deleteNode}>Delete Node</Button>
-            </Stack>
+            <TextField
+                label="Subnet Name"
+                {...register("subnetName")}
+                error={!!errors.subnetName}
+                helperText={errors.subnetName?.message}
+                fullWidth
+                margin="normal"
+            />
+            <TextField
+                label={`Subnet's CIDR Block (inside  ${parentVpcCidr || 'VPC'})`}
+                {...register("cidrBlock")}
+                error={!!errors.cidrBlock}
+                helperText={errors.cidrBlock?.message}
+                placeholder="10.0.1.0/26"
+                fullWidth
+                margin="normal"
+
+            />
+            <TextField
+                label="Availability Zone"
+                {...register("availabilityZone")}
+                error={!!errors.availabilityZone}
+                helperText={errors.availabilityZone?.message}
+                fullWidth
+                margin="normal"
+            />
+
+            <FormControl fullWidth margin="normal">
+                <InputLabel id="rt-label">Route Table Type</InputLabel>
+                <Select
+                    labelId="rt-label"
+                    {...register("route_table")}
+                    label="Route Table Type"
+                    defaultValue="private"
+                >
+                    <MenuItem value="public">Public</MenuItem>
+                    <MenuItem value="private">Private</MenuItem>
+                </Select>
+                 {errors.route_table && <p>{errors.route_table.message}</p>}
+            </FormControl>
+           
+
+            <Button type="submit" variant="contained" color="primary">
+                Registrar Configuración
+            </Button>
+            <Button onClick={deleteNode} sx={{ ml: 1 }}>Delete Node</Button>
+
         </form>
     );
 };

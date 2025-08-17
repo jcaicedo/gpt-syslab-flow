@@ -3,7 +3,10 @@ import App from './App.jsx'
 import './index.css'
 import { ThemeProvider } from '@emotion/react'
 import { CssBaseline } from '@mui/material'
-import { darkTheme } from './styles/theme.js'
+// import { darkTheme } from './styles/theme.js'
+import theme from './theme/packetTracerTheme';
+import AppThemeProvider from './theme/AppThemeProvider.jsx'
+
 
 // const darkTheme = createTheme({
 //   palette: {
@@ -23,10 +26,9 @@ import { darkTheme } from './styles/theme.js'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
 
-  <ThemeProvider theme={darkTheme}>
-    <CssBaseline />
+   <AppThemeProvider>
     <App />
-  </ThemeProvider>
+  </AppThemeProvider>
 
   ,
 )

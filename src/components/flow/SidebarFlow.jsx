@@ -1,78 +1,65 @@
-import { Box, Typography, Grid, Card } from '@mui/material'
-import { TITLE_COMPUTER, TITLE_PRINT, TITLE_ROUTER, TITLE_SERVER, TITLE_SUBNETWORK, TYPE_COMPUTER_NODE, TYPE_PRINTER_NODE, TYPE_ROUTER_NODE, TYPE_SERVER_NODE, TYPE_SUBNETWORK_NODE, TYPE_VPC_NODE } from './utils/constants'
+import { useState } from 'react';
+import { Box } from '@mui/material';
+import {
+    TITLE_COMPUTER, TITLE_PRINT, TITLE_ROUTER, TITLE_SERVER, TITLE_SUBNETWORK,
+    TYPE_COMPUTER_NODE, TYPE_PRINTER_NODE, TYPE_ROUTER_NODE, TYPE_SERVER_NODE,
+    TYPE_SUBNETWORK_NODE, TYPE_VPC_NODE
+} from './utils/constants';
+import './styles/sidebar-pt.css';
 
+// Íconos MUI (puedes cambiar por lucide si prefieres)
+import CloudIcon from '@mui/icons-material/Cloud';
+import LanIcon from '@mui/icons-material/Lan';
+import DesktopWindowsIcon from '@mui/icons-material/DesktopWindows';
+import PrintIcon from '@mui/icons-material/Print';
+import DnsIcon from '@mui/icons-material/Dns';
+import RouterIcon from '@mui/icons-material/Router';
+
+const ITEMS = [
+    { key: 'vpc', type: TYPE_VPC_NODE, label: 'VPC', icon: <CloudIcon /> },
+    { key: 'subnetwork', type: TYPE_SUBNETWORK_NODE, label: TITLE_SUBNETWORK, icon: <LanIcon /> },
+    { key: 'computer', type: TYPE_COMPUTER_NODE, label: TITLE_COMPUTER, icon: <DesktopWindowsIcon /> },
+    { key: 'printer', type: TYPE_PRINTER_NODE, label: TITLE_PRINT, icon: <PrintIcon /> },
+    { key: 'server', type: TYPE_SERVER_NODE, label: TITLE_SERVER, icon: <DnsIcon /> },
+    { key: 'router', type: TYPE_ROUTER_NODE, label: TITLE_ROUTER, icon: <RouterIcon /> },
+];
 
 const SidebarFlow = () => {
+    const [dragging, setDragging] = useState(null);
 
-    const onDragStart = (event, nodeType) => {
-        event.dataTransfer.setData("application/reactflow", nodeType)
-        event.dataTransfer.effectAllowed = "move"
-    }
-    // // console.log(onDragStart);
+    const onDragStart = (event, nodeType, key) => {
+        event.dataTransfer.setData('application/reactflow', nodeType);
+        event.dataTransfer.setData('text/plain', nodeType);
+        event.dataTransfer.effectAllowed = 'move';
+        setDragging(key);
+    };
+    const onDragEnd = () => setDragging(null);
 
     return (
-        <Box sx={{ mt: 2 }}>
-            <Typography variant="subtitle1" textAlign={"center"} sx={{ mb: 3 }}>
-                INSTANCES
-            </Typography>
-            <Grid container>
-                <Grid item xs={12}> <Card
-                    draggable
-                    onDragStart={e => onDragStart(e, TYPE_VPC_NODE)}
-                    sx={{ display: "flex", background: '#0B8068', color: 'white', alignItems: "center", p: 3 }}
-                >
-                    VPC
-                </Card></Grid>
-                <Grid item xs={12}>
-                    <Card
-                        onDragStart={(event) => onDragStart(event, TYPE_SUBNETWORK_NODE)}
-                        draggable
-                        sx={{ display: "flex", alignItems: "center", p: 3 }}
-                    >
-                        <Box sx={{ flexGrow: 1, minWidth: 0 }}>{TITLE_SUBNETWORK}</Box>
-                    </Card>
+        <Box className="pt-sidebar">
+            <div className="pt-sidebar__header">End Devices</div>
 
-                </Grid>
-                <Grid item xs={12}>
-                    <Card
-                        onDragStart={(event) => onDragStart(event, TYPE_COMPUTER_NODE)}
+            <div className="pt-sidebar__list">
+                {ITEMS.map(({ key, type, label, icon }) => (
+                    <div
+                        key={key}
+                        data-key={key}                              // 👈 necesario para color del dot
+                        className={`pt-sidebar__item ${dragging === key ? 'pt-sidebar__item--active' : ''}`}
                         draggable
-                        sx={{ display: "flex", alignItems: "center", p: 3 }}
+                        onDragStart={(e) => onDragStart(e, type, key)}
+                        onDragEnd={onDragEnd}
+                        title={label}
+                        role="button"
+                        tabIndex={0}
                     >
-                        <Box sx={{ flexGrow: 1, minWidth: 0 }}>{TITLE_COMPUTER}</Box>
-                    </Card>
-                </Grid>
-                <Grid item xs={12}>
-                    <Card
-                        onDragStart={(event) => onDragStart(event, TYPE_PRINTER_NODE)}
-                        draggable
-                        sx={{ display: "flex", alignItems: "center", p: 3 }}
-                    >
-                        <Box sx={{ flexGrow: 1, minWidth: 0 }}>{TITLE_PRINT}</Box>
-                    </Card>
-                </Grid>
-                <Grid item xs={12}>
-                    <Card
-                        onDragStart={(event) => onDragStart(event, TYPE_SERVER_NODE)}
-                        draggable
-                        sx={{ display: "flex", alignItems: "center", p: 3 }}
-                    >
-                        <Box sx={{ flexGrow: 1, minWidth: 0 }}>{TITLE_SERVER}</Box>
-                    </Card>
-                </Grid>
-                <Grid item xs={12}>
-                    <Card
-                        onDragStart={(event) => onDragStart(event, TYPE_ROUTER_NODE)}
-                        draggable
-                        sx={{ display: "flex", alignItems: "center", p: 3 }}
-                    >
-                        <Box sx={{ flexGrow: 1, minWidth: 0 }}>{TITLE_ROUTER}</Box>
-                    </Card>
-                </Grid>
+                        <span className="pt-sidebar__icon">{icon}</span>
+                        <span className="pt-sidebar__label">{label}</span>
+                    </div>
+                ))}
+            </div>
 
-            </Grid>
         </Box>
-    )
-}
+    );
+};
 
-export default SidebarFlow
+export default SidebarFlow;

@@ -132,7 +132,7 @@ const VPCList = () => {
                             Crear Nueva VPC
                         </Button> */}
                         <Button variant="contained" startIcon={<AddIcon/>} onClick={() => setIsCreateVPCModalOpen(true)} color="secondary">
-                            Add new vpc
+                            add new VLAN
                         </Button>
                     </div>
 

@@ -11,7 +11,7 @@ import {
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import { initialNodes } from './utils/initials-elements';
-
+import PacketToolbar from "./PacketToolbar";
 // mui
 import {
     Alert,
@@ -27,63 +27,50 @@ import {
 // import Modal from 'react-modal';
 import '@xyflow/react/dist/style.css';
 import '../../App.css';
-
+import './styles/packet-tracer.css';
 //Custom compoonents and hooks
 import SidebarFlow from './SidebarFlow';
 import { useFlowState } from './flow-hooks/useFlowState';
 import useNodeClick from './flow-hooks/useNodeClick';
 import useNodeDrag from './flow-hooks/useNodeDrag';
 import useNodeDragStart from './flow-hooks/useNodeDragStart';
-import useNodeDragStop from './flow-hooks/useNodeDragStop';
 import useRestoreFlow from './flow-hooks/useRestoreFlow';
 import useSaveFlow from './flow-hooks/useSaveFlow';
 import InstanceNodeForm from './forms/InstanceNodeForm';
+import RouterNodeForm from './forms/RouterNodeForm';
 import SubNetworkNodeForm from './forms/SubNetworkNodeForm';
+import VPCNodeForm from './forms/VPCNodeForm';
 import InstanceNode from "./node-types/InstanceNode";
 import RouterNodeInstance from "./node-types/RouterNodeInstance";
-import VPCNodeInstance from "./node-types/VPCNodeInstance";
 import SubNetworkNodeInstance from './node-types/SubNetworkNodeInstance';
+import VPCNodeInstance from "./node-types/VPCNodeInstance";
 import useCidrBlockVPCStore from './store/cidrBlocksIp';
 import useClickedNodeIdStore from './store/clickedNodeIdStore';
 
 // Importar constantes
 import {
-    colorBgInstanceNode,
-    colorsBgSubnetworksNodes,
     DB_AMI_LIST,
     flowKey,
-    heightDefaultInstanceNode,
-    heightDefaultInstanceRouter,
-    heightDefaultSubNetworkNode,
     TYPE_COMPUTER_NODE,
     TYPE_DEFAULT_NODE,
     TYPE_PRINTER_NODE,
     TYPE_ROUTER_NODE,
     TYPE_SERVER_NODE,
     TYPE_SUBNETWORK_NODE,
-    TYPE_VPC_NODE,
-    widthDefaultInstanceNode,
-    widthDefaultInstanceRouter,
-    widthDefaultSubNetworkNode,
+    TYPE_VPC_NODE
 } from './utils/constants';
 
 import { collection, getDocs } from "firebase/firestore";
+import { useContext } from "react";
+import { LoadingFlowContext } from "../../contexts/LoadingFlowContext";
 import { NetworkProvider } from "../../contexts/NetworkNodesContext";
 import { db } from "../../firebase/firebaseConfig";
 import useDeployNetwork from "./flow-hooks/useDeployNetwork";
-import RouteTableForm from "./forms/RouteTableForm";
-import RouteTableFormFullScreen from "./forms/RouteTableFormFullScreen";
-import getNodeTitle from "./utils/getNodeTitle";
-import { LoadingFlowContext } from "../../contexts/LoadingFlowContext";
-import { useContext } from "react";
-import { useRestrictSubnetsInsideVPC } from "./flow-hooks/useRestrictSubnetsInsideVPC";
 import useHandleDrop from "./flow-hooks/useHandleDrop";
 import useRestrictMovement from "./flow-hooks/useRestrictMovement";
+import { useRestrictSubnetsInsideVPC } from "./flow-hooks/useRestrictSubnetsInsideVPC";
+import { useTheme } from "@mui/material/styles";
 
-
-
-
-//const connectionLineStyle = { stroke: "white" };
 
 const nodeTypes = {
     vpc: VPCNodeInstance,
@@ -95,7 +82,7 @@ const nodeTypes = {
 }
 
 
-const restrictedNodes = [TYPE_DEFAULT_NODE, TYPE_COMPUTER_NODE, TYPE_PRINTER_NODE, TYPE_SERVER_NODE, TYPE_SUBNETWORK_NODE]
+const restrictedNodes = [TYPE_DEFAULT_NODE, TYPE_COMPUTER_NODE, TYPE_PRINTER_NODE, TYPE_SERVER_NODE]
 
 
 const makeRandomId = (length) => {
@@ -132,14 +119,15 @@ const style = {
 };
 
 
-const connectionLineStyle = {
-    strokeWidth: 3,
-    stroke: 'black',
-};
+const connectionLineStyle = { strokeWidth: 2, stroke: '#1a2438' };
 
 // eslint-disable-next-line react-refresh/only-export-components
 function MainFlow() {
     const { vpcid } = useParams()
+    const theme = useTheme();
+    const dotColor = theme.palette.mode === 'light'
+        ? 'rgba(90,98,117,0.15)'
+        : 'rgba(200,210,230,0.12)';
 
     const initialEdges = [];
     const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
@@ -148,6 +136,11 @@ function MainFlow() {
     const { loadingFlow } = useContext(LoadingFlowContext);
     useRestrictSubnetsInsideVPC()
     const reactFlow = useReactFlow();
+
+    const rf = useReactFlow();
+    const handleZoomIn = () => rf.zoomIn();
+    const handleZoomOut = () => rf.zoomOut();
+    const handleFitView = () => rf.fitView({ padding: .2 });
 
     // eslint-disable-next-line no-unused-vars
     const [target, setTarget] = useState(null);
@@ -171,10 +164,8 @@ function MainFlow() {
     const [modalIsOpen, setModalIsOpen] = useState(false);
     const [selectedNode, setSelectedNode] = useState(null);
 
-    const [openRouteTableFullScreen, setOpenRouteTableFullScreen] = useState(false);
-
-  const { onDrop } = useHandleDrop(reactFlowInstance, setNodes);
-  const { onNodeDragStop } = useRestrictMovement(reactFlowInstance, setNodes);
+    const { onDrop } = useHandleDrop(reactFlowInstance, setNodes);
+    const { onNodeDragStop } = useRestrictMovement(reactFlowInstance, setNodes);
 
     // const [vpcData, setVPCData] = useState(null);
 
@@ -190,7 +181,7 @@ function MainFlow() {
     }, []);
 
 
-    const onNodeClick = useNodeClick(setSelectedNode, setModalIsOpen, setOpenRouteTableFullScreen);
+    const onNodeClick = useNodeClick(setSelectedNode, setModalIsOpen);
 
 
     const closeModal = () => {
@@ -199,6 +190,8 @@ function MainFlow() {
     }
 
     const saveNodeData = (data) => {
+        console.log();
+
         setNodes((nds) =>
             nds.map((node) => {
                 if (node.id === selectedNode.id) {
@@ -273,7 +266,11 @@ function MainFlow() {
     }
 
 
-    const onNodeDragStart = useNodeDragStart({ dragRef });
+
+    const onNodeDragStart = useCallback((_, node) => {
+        setNodes(nds => nds.map(n => ({ ...n, selected: n.id === node.id })));
+    }, [setNodes]);
+
     const onNodeDrag = useNodeDrag({ nodes, setTarget, TYPE_SUBNETWORK_NODE });
     //const onNodeDragStop = useNodeDragStop({ nodes, setNodes, reactFlow, TYPE_SUBNETWORK_NODE, TYPE_VPC_NODE });
     const onSaveFlow = useSaveFlow({ reactFlowInstance, flowKey, vpcid });
@@ -393,20 +390,34 @@ function MainFlow() {
                         borderRadius: { xs: 2, sm: "0 16px 16px 0" },
                     }}
                         ref={reactFlowWrapper} >
+                        <PacketToolbar
+                            onSave={onSaveFlow}
+                            onRestore={onRestoreFlow}
+                            onRestoreInitial={restoreInitialNodes}
+                            onDeploy={processJsonToCloud}
+                            onZoomIn={handleZoomIn}
+                            onZoomOut={handleZoomOut}
+                            onFitView={handleFitView}
+                            title="Logical"
+                        />
                         <ReactFlow
                             nodes={nodes}
-                            edges={edges.map(edge => ({ ...edge, style: connectionLineStyle }))}
+                            edges={edges.map(e => ({ ...e, style: connectionLineStyle, animated: true }))}
                             onNodesChange={onNodesChange}
                             onEdgesChange={onEdgesChange}
                             onNodeClick={onNodeClick}
-                            onConnect={(params) => onConnect(params, setEdges)}
+                            onConnect={(params) => onConnect(params, setEdges, () => reactFlowInstance?.getEdges?.() || [])}
                             onInit={setReactFlowInstance}
                             onDrop={onDrop}
                             onNodeDragStart={onNodeDragStart}
                             onNodeDrag={onNodeDrag}
                             onNodeDragStop={onNodeDragStop}
                             onDragOver={onDragOver}
+                            backgroundVariant="dots"
                             snapToGrid
+                            snapGrid={[24, 24]}              // alineación limpia
+                            selectionOnDrag={false}          // evita seleccionar “marco azul” al arrastrar
+                            elevateNodesOnSelect
                             onConnectStart={onConnectStart}
                             onConnectEnd={onConnectEnd}
                             fitViewOptions={{
@@ -420,9 +431,11 @@ function MainFlow() {
                                 backgroundColor: "#D3D2E5",
                             }}
                             connectionLineStyle={connectionLineStyle}
+                            onPaneClick={() => setNodes(nds => nds.map(n => ({ ...n, selected: false })))}
+
                         >
 
-                            <Panel position="top-right">
+                            {/* <Panel position="top-right">
                                 <Stack spacing={1}>
                                     <Button onClick={onSaveFlow} variant="contained" color="secondary">
                                         Save
@@ -445,10 +458,11 @@ function MainFlow() {
                                         Deploy Network
                                     </Button>
                                 </Stack>
-                            </Panel>
+                            </Panel> */}
 
                             <Controls />
-                            <Background variant="lines" />
+                            <Background variant="dots" gap={24} size={1.2} color={dotColor} />
+
                         </ReactFlow>
                     </Card>
                 </Grid>
@@ -461,42 +475,106 @@ function MainFlow() {
                 >
                     <Box sx={{ ...style, width: 400 }}>
 
-
+                        {/* If selected node is restricted, show warning */}
                         {selectedNode && restrictedNodes.includes(selectedNode.type) && (() => {
+                            // Subnet padre de la instancia seleccionada
                             const parentSubnet = nodes.find(n => n.id === selectedNode.parentId);
-                            const subnetCidr = parentSubnet?.data?.cidrBlock || "";
+                            const parentSubnetCidr = parentSubnet?.data?.cidrBlock || "";
+
+                            // IPs ya usadas en la misma Subnet (excluye la instancia actual)
+                            const siblingIpsInSameSubnet = nodes
+                                .filter(n =>
+                                    restrictedNodes.includes(n.type) &&
+                                    n.parentId === parentSubnet?.id &&
+                                    n.id !== selectedNode.id
+                                )
+                                .map(n => n.data?.ipAddress)
+                                .filter(Boolean);
 
                             return (
                                 <InstanceNodeForm
                                     nodeData={selectedNode.data}
                                     onSave={saveNodeData}
-                                    cidrBlockVPC={subnetCidr}
-                                    amiList={amiList}
                                     deleteNode={deleteNodeInstance}
+                                    parentSubnetCidr={parentSubnetCidr}                // <-- clave
+                                    siblingIpsInSameSubnet={siblingIpsInSameSubnet}    // <-- clave
+                                    amiList={amiList}
                                 />
                             );
                         })()}
 
-                        {selectedNode && selectedNode.type === TYPE_SUBNETWORK_NODE && (
-                            <SubNetworkNodeForm nodeData={selectedNode.data} onSave={saveNodeData} cidrBlockVPC={cidrBlockVPC} deleteNode={deleteNodeInstance} />
-                        )}
-                        {/* {selectedNode && selectedNode.type === TYPE_ROUTER_NODE && (
-                            <RouterNodeForm nodeData={selectedNode.data} onSave={saveNodeData} cidrBlockVPC={cidrBlockVPC} deleteNode={deleteNodeInstance} />
-                        )} */}
+
+                        {/* If node type is Subnetwork, show SubNetworkNodeForm */}
+                        {selectedNode && selectedNode.type === TYPE_SUBNETWORK_NODE && (() => {
+                            //VPC-hija padre de la Subnet seleccionada
+                            const parentVpcNode = nodes.find(n => n.id === selectedNode.parentId);
+                            const parentVpcCidr = parentVpcNode?.data
+                                ? `${parentVpcNode.data.cidrBlock}/${parentVpcNode.data.prefixLength}`
+                                : "";
+
+                            // CIDRs de subredes hermanas (misma VPC) excluyendo la actual
+                            const siblingSubnetCidrsInSameVpc = nodes
+                                .filter(n => n.type === TYPE_SUBNETWORK_NODE && n.parentId === parentVpcNode?.id && n.id !== selectedNode.id)
+                                .map(n => n.data?.cidrBlock)
+                                .filter(Boolean);
+
+                            return (
+                                <SubNetworkNodeForm
+                                    nodeData={selectedNode.data}
+                                    onSave={saveNodeData}
+                                    deleteNode={deleteNodeInstance}
+                                    parentVpcCidr={parentVpcCidr}                               // <-- clave
+                                    siblingSubnetCidrsInSameVpc={siblingSubnetCidrsInSameVpc}   // <-- clave
+                                />
+                            )
+                        })()}
+
+
+                        {/* If node type is Router, show RouterNodeForm */}
+                        {selectedNode && selectedNode.type === TYPE_ROUTER_NODE && (() => {
+                            const vlanRegion = "us-east-1"; // o léela desde el doc de la VLAN si la guardas
+                            return (
+                                <RouterNodeForm
+                                    node={selectedNode}                 // << importante
+                                    nodeData={selectedNode.data}
+                                    onSave={saveNodeData}
+                                    deleteNode={deleteNodeInstance}
+                                    vlanRegion={vlanRegion}
+                                />
+                            );
+                        })()}
+                        {/* If node type is VPC, show VPCNodeForm */}
+                        {selectedNode && selectedNode.type === TYPE_VPC_NODE && (() => {
+
+                            //1) VLAN CIDR maestro desde store
+                            const vlanCidr = (cidrBlockVPC && prefixLength)
+                                ? `${cidrBlockVPC}/${prefixLength}`
+                                : "";
+                            //2) CIDRs de otras VPC-hija (excluye la seleccionada)
+                            const siblingVpcCidrs = nodes
+                                .filter(n => n.type === TYPE_VPC_NODE && n.id !== selectedNode.id)
+                                .map(n => {
+                                    const base = n.data?.cidrBlock;
+                                    const pref = n.data?.prefixLength;
+                                    return base && pref ? `${base}/${pref}` : null;
+                                }).filter(Boolean);
+
+                            return (
+                                <VPCNodeForm
+                                    nodeData={selectedNode.data}
+                                    onSave={saveNodeData}
+                                    deleteNode={deleteNodeInstance}
+                                    vlanCidr={vlanCidr}                 // <-- pasa VLAN CIDR
+                                    siblingVpcCidrs={siblingVpcCidrs}   // <-- pasa lista de VPC CIDRs hermanas
+                                />
+
+                            )
+
+                        })()}
 
 
                     </Box>
                 </Modal>
-
-
-                {selectedNode && (
-                    <RouteTableFormFullScreen
-                        openModalRouteTable={openRouteTableFullScreen}
-                        handleOpenDialog={() => setOpenRouteTableFullScreen(false)}
-                        node={selectedNode}
-                        onSave={saveNodeData}
-                    />
-                )}
 
 
                 {/* Modal to confirm deploy */}

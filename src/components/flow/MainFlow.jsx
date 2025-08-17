@@ -11,7 +11,7 @@ import {
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import { initialNodes } from './utils/initials-elements';
-
+import PacketToolbar from "./PacketToolbar";
 // mui
 import {
     Alert,
@@ -27,7 +27,7 @@ import {
 // import Modal from 'react-modal';
 import '@xyflow/react/dist/style.css';
 import '../../App.css';
-
+import './styles/packet-tracer.css';
 //Custom compoonents and hooks
 import SidebarFlow from './SidebarFlow';
 import { useFlowState } from './flow-hooks/useFlowState';
@@ -69,11 +69,8 @@ import useDeployNetwork from "./flow-hooks/useDeployNetwork";
 import useHandleDrop from "./flow-hooks/useHandleDrop";
 import useRestrictMovement from "./flow-hooks/useRestrictMovement";
 import { useRestrictSubnetsInsideVPC } from "./flow-hooks/useRestrictSubnetsInsideVPC";
+import { useTheme } from "@mui/material/styles";
 
-
-
-
-//const connectionLineStyle = { stroke: "white" };
 
 const nodeTypes = {
     vpc: VPCNodeInstance,
@@ -122,14 +119,15 @@ const style = {
 };
 
 
-const connectionLineStyle = {
-    strokeWidth: 3,
-    stroke: 'black',
-};
+const connectionLineStyle = { strokeWidth: 2, stroke: '#1a2438' };
 
 // eslint-disable-next-line react-refresh/only-export-components
 function MainFlow() {
     const { vpcid } = useParams()
+    const theme = useTheme();
+    const dotColor = theme.palette.mode === 'light'
+        ? 'rgba(90,98,117,0.15)'
+        : 'rgba(200,210,230,0.12)';
 
     const initialEdges = [];
     const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
@@ -138,6 +136,11 @@ function MainFlow() {
     const { loadingFlow } = useContext(LoadingFlowContext);
     useRestrictSubnetsInsideVPC()
     const reactFlow = useReactFlow();
+
+    const rf = useReactFlow();
+    const handleZoomIn = () => rf.zoomIn();
+    const handleZoomOut = () => rf.zoomOut();
+    const handleFitView = () => rf.fitView({ padding: .2 });
 
     // eslint-disable-next-line no-unused-vars
     const [target, setTarget] = useState(null);
@@ -263,7 +266,11 @@ function MainFlow() {
     }
 
 
-    const onNodeDragStart = useNodeDragStart({ dragRef });
+
+    const onNodeDragStart = useCallback((_, node) => {
+        setNodes(nds => nds.map(n => ({ ...n, selected: n.id === node.id })));
+    }, [setNodes]);
+
     const onNodeDrag = useNodeDrag({ nodes, setTarget, TYPE_SUBNETWORK_NODE });
     //const onNodeDragStop = useNodeDragStop({ nodes, setNodes, reactFlow, TYPE_SUBNETWORK_NODE, TYPE_VPC_NODE });
     const onSaveFlow = useSaveFlow({ reactFlowInstance, flowKey, vpcid });
@@ -383,9 +390,19 @@ function MainFlow() {
                         borderRadius: { xs: 2, sm: "0 16px 16px 0" },
                     }}
                         ref={reactFlowWrapper} >
+                        <PacketToolbar
+                            onSave={onSaveFlow}
+                            onRestore={onRestoreFlow}
+                            onRestoreInitial={restoreInitialNodes}
+                            onDeploy={processJsonToCloud}
+                            onZoomIn={handleZoomIn}
+                            onZoomOut={handleZoomOut}
+                            onFitView={handleFitView}
+                            title="Logical"
+                        />
                         <ReactFlow
                             nodes={nodes}
-                            edges={edges.map(edge => ({ ...edge, style: connectionLineStyle }))}
+                            edges={edges.map(e => ({ ...e, style: connectionLineStyle, animated: true }))}
                             onNodesChange={onNodesChange}
                             onEdgesChange={onEdgesChange}
                             onNodeClick={onNodeClick}
@@ -396,7 +413,11 @@ function MainFlow() {
                             onNodeDrag={onNodeDrag}
                             onNodeDragStop={onNodeDragStop}
                             onDragOver={onDragOver}
+                            backgroundVariant="dots"
                             snapToGrid
+                            snapGrid={[24, 24]}              // alineación limpia
+                            selectionOnDrag={false}          // evita seleccionar “marco azul” al arrastrar
+                            elevateNodesOnSelect
                             onConnectStart={onConnectStart}
                             onConnectEnd={onConnectEnd}
                             fitViewOptions={{
@@ -410,9 +431,11 @@ function MainFlow() {
                                 backgroundColor: "#D3D2E5",
                             }}
                             connectionLineStyle={connectionLineStyle}
+                            onPaneClick={() => setNodes(nds => nds.map(n => ({ ...n, selected: false })))}
+
                         >
 
-                            <Panel position="top-right">
+                            {/* <Panel position="top-right">
                                 <Stack spacing={1}>
                                     <Button onClick={onSaveFlow} variant="contained" color="secondary">
                                         Save
@@ -435,10 +458,11 @@ function MainFlow() {
                                         Deploy Network
                                     </Button>
                                 </Stack>
-                            </Panel>
+                            </Panel> */}
 
                             <Controls />
-                            <Background variant="lines" />
+                            <Background variant="dots" gap={24} size={1.2} color={dotColor} />
+
                         </ReactFlow>
                     </Card>
                 </Grid>

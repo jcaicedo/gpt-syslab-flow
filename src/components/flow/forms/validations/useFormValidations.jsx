@@ -145,7 +145,6 @@ export const useFormValidationSchema = (
         availabilityZone: yup.string().required("Zone is required"),
         route_table: yup
           .string()
-          .required("Public or Private is required")
           .oneOf(["public", "private"], "Invalid Route Table Type")
       }).required();
 

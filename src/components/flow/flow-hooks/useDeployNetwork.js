@@ -21,7 +21,7 @@ const useDeployNetwork = ({ nodes, edges }) => {
   const { setLoadingFlow } = useContext(LoadingFlowContext);
 
   const processJsonToCloud = () => {
-    
+
     // 1) Validación integral (bloquea deploy si hay errores)
     const { errors, warnings } = validateTopology(nodes, edges);
     if (errors.length > 0) {
@@ -76,6 +76,7 @@ const useDeployNetwork = ({ nodes, edges }) => {
           cidr_block: sn.data?.cidrBlock,
           availability_zone: sn.data?.zone,
           public_ip: sn.data?.publicIp,
+          subnet_type: sn.data?.subnetType,
           route_table: "main",
           instances
         };

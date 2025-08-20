@@ -145,7 +145,8 @@ export const useFormValidationSchema = (
         availabilityZone: yup.string().required("Zone is required"),
         route_table: yup
           .string()
-          .oneOf(["public", "private"], "Invalid Route Table Type")
+          .oneOf(["public", "private"], "Invalid Route Table Type"),
+        subnetType: yup.string().oneOf(['public', 'private']).required('Subnet Type is required'),
       }).required();
 
     /* ------------------------ Instancia (dentro de Subnet) ------------------------ */
@@ -162,8 +163,8 @@ export const useFormValidationSchema = (
           .required("IP Address is required")
           .matches(ipRegex, 'IP Address must be a valid IP (0-255 in each segment)')
           .test('is-subnet', function (value) {
-                   // OJO: aquí debes pasar cidrBlockVPC = CIDR DE LA SUBNET
-            if (!value || !cidrBlockVPC) return true;  
+            // OJO: aquí debes pasar cidrBlockVPC = CIDR DE LA SUBNET
+            if (!value || !cidrBlockVPC) return true;
             try {
               const block = new Netmask(cidrBlockVPC);
               const isValid = block.contains(value);
@@ -185,7 +186,7 @@ export const useFormValidationSchema = (
         sshAccess: yup.string().required("SSH Access is required")
       }).required();
 
-          /* ------------------------ Router ------------------------ */
+    /* ------------------------ Router ------------------------ */
 
     case TYPE_ROUTER_NODE:
       return yup.object({

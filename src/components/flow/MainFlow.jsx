@@ -108,17 +108,23 @@ const getId = {
 
 
 
-const style = {
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    transform: 'translate(-50%, -50%)',
-    width: 400,
-    bgcolor: 'background.paper',
-    border: '2px solid #000',
-    boxShadow: 24,
-    p: 4,
+const styleModal = {
+  position: 'absolute',
+  top: '50%',
+  left: '50%',
+  transform: 'translate(-50%, -50%)',
+  width: 880,           // << sube a 880px
+  maxWidth: '95vw',
+  maxHeight: '85vh',
+  overflowY: 'auto',
+  bgcolor: 'background.paper',
+  border: '2px solid #000',
+  borderRadius: 2,
+  boxShadow: 24,
+  p: 4,
 };
+
+
 
 
 const connectionLineStyle = { strokeWidth: 2, stroke: '#1a2438' };
@@ -581,7 +587,7 @@ function MainFlow() {
                     aria-labelledby="parent-modal-title"
                     aria-describedby="parent-modal-description"
                 >
-                    <Box sx={{ ...style, width: 400 }}>
+                    <Box sx={{ ...styleModal, width: 600 }}>
 
                         {/* If selected node is restricted, show warning */}
                         {selectedNode && restrictedNodes.includes(selectedNode.type) && (() => {
@@ -640,36 +646,52 @@ function MainFlow() {
 
                         {/* If node type is Router, show RouterNodeForm */}
                         {selectedNode && selectedNode.type === TYPE_ROUTER_NODE && (() => {
+                            const idToNode = new Map(nodes.map(n => [n.id, n]));
+                            const idToType = new Map(nodes.map(n => [n.id, n.type]));
 
-                            //VPCs conectadas al router seleccionado
-                            const connectedVpcNodes = nodes.filter(n =>
-                                n.type === TYPE_VPC_NODE &&
-                                edges.some(e =>
-                                    (e.source === n.id && e.target === selectedNode.id) ||
-                                    (e.target === n.id && e.source === selectedNode.id)
-                                )
-                            );
+                            const connectedVpcsSet = new Set();
+                            edges.forEach(e => {
+                                const touchesRouter = e.source === selectedNode.id || e.target === selectedNode.id;
+                                if (!touchesRouter) return;
+                                const otherId = e.source === selectedNode.id ? e.target : e.source;
+                                const other = idToNode.get(otherId);
+                                if (other?.type === TYPE_VPC_NODE) {
+                                    const base = other.data?.cidrBlock;
+                                    const pref = other.data?.prefixLength;
+                                    const cidr = base && pref ? `${base}/${pref}` : null;
+                                    connectedVpcsSet.add(JSON.stringify({
+                                        id: other.id,
+                                        name: other.data?.vpcName || other.data?.title || other.id,
+                                        cidr
+                                    }));
+                                }
+                            });
+                            const connectedVpcs = Array.from(connectedVpcsSet).map(JSON.parse);
 
-                            //Mapea aun shape cómodo para el form
-                            const connectedVpcs = connectedVpcNodes.map(v => ({
-                                id: v.id,
-                                name: v.data?.vpcName || v.data?.title || v.id,
-                                cidr: v.data?.cidrBlock && v.data?.prefixLength
-                                    ? `${v.data.cidrBlock}/${v.data.prefixLength}`
-                                    : '',
-                            }))
+                            const allVpcCidrs = nodes
+                                .filter(n => n.type === TYPE_VPC_NODE)
+                                .map(n => {
+                                    const base = n.data?.cidrBlock;
+                                    const pref = n.data?.prefixLength;
+                                    return {
+                                        id: n.id,
+                                        name: n.data?.vpcName || n.data?.title || n.id,
+                                        cidr: base && pref ? `${base}/${pref}` : null
+                                    };
+                                });
 
                             const vlanRegion = "us-east-1";
+
                             return (
                                 <RouterNodeForm
                                     node={selectedNode}
                                     nodeData={selectedNode.data}
                                     onSave={saveNodeData}
                                     deleteNode={deleteNodeInstance}
-                                    vlanRegion={vlanRegion}
                                     connectedVpcs={connectedVpcs}
-                                />
-                            );
+                                    allVpcCidrs={allVpcCidrs}
+                                    vlanRegion={vlanRegion}
+                                />);
                         })()}
 
 

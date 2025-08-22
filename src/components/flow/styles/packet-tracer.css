@@ -351,3 +351,62 @@
 .pt-panel {
     width: 100%;
 }
+
+/* Asegura que el LED se posicione relativo al círculo */
+.pt-device {
+    position: relative;
+    /* por si otro estilo pisa el inline */
+}
+
+/* Si quieres el LED arriba-derecha */
+.pt-device__led {
+    position: absolute;
+    top: 8px;
+    /* antes 6px */
+    right: 8px;
+    /* antes 6px */
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #34d399;
+    /* up */
+    box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.25);
+}
+
+.pt-device__led--warn {
+    background: #f59e0b;
+}
+
+.pt-device__led--down {
+    background: #ef4444;
+}
+
+/* Etiquetas bajo el router */
+.pt-device__label {
+    font-weight: 600;
+    text-align: center;
+    max-width: 140px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-top: 8px;
+}
+
+.pt-device__sublabel {
+    font-size: 12px;
+    color: #6b7280;
+    text-align: center;
+    margin-top: 2px;
+}
+
+/* por defecto ocultos */
+.pt-device .pt-handle-tri {
+    opacity: 0;
+    transition: opacity .15s ease;
+}
+
+/* visibles al hover del círculo o si hay drag conexionando */
+.pt-device:hover .pt-handle-tri,
+.react-flow__node:has(.pt-device) .connecting .pt-handle-tri {
+    opacity: 1;
+}

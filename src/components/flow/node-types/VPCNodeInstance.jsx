@@ -35,7 +35,7 @@ function VPCNodeInstance({ data = {}, isConnectable }) {
 
             {/* Puertos superior e inferior (útil para VPC ↔ Router y Subnet ↔ VPC) */}
             <Handle type="source" position={Position.Top} className="pt-handle" isConnectable={isConnectable} />
-            <Handle type="target" position={Position.Bottom} className="pt-handle" isConnectable={isConnectable} />
+            {/* <Handle type="target" position={Position.Bottom} className="pt-handle" isConnectable={isConnectable} /> */}
         </div>
     );
 }

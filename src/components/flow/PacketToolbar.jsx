@@ -14,7 +14,7 @@ import { useThemeMode } from '../../theme/AppThemeProvider';
 
 export default function PacketToolbar({
     onSave, onRestore, onRestoreInitial, onDeploy,
-    onZoomIn, onZoomOut, onFitView, title = 'Logical'
+    onZoomIn, onZoomOut, onFitView, title = 'Logical', onPreviewRoutes
 }) {
     const { mode, toggle } = useThemeMode();
 
@@ -45,6 +45,7 @@ export default function PacketToolbar({
                     <Button variant="outlined" className="pt-btn" startIcon={<RestoreIcon />} onClick={onRestore} size="small">Restore</Button>
                     <Button variant="outlined" className="pt-btn pt-btn--yellow" startIcon={<RestartAltIcon />} onClick={onRestoreInitial} size="small">Restore Initial</Button>
                     <Button variant="outlined" className="pt-btn pt-btn--green" startIcon={<PlayArrowIcon />} onClick={onDeploy} size="small">Deploy</Button>
+                    <Button variant="outlined" className="pt-btn pt-btn--green" startIcon={<PlayArrowIcon />} onClick={onPreviewRoutes} size="small">Preview</Button>
                 </div>
 
             </div>

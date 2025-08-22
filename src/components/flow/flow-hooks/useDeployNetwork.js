@@ -2,7 +2,6 @@ import axios from "axios";
 import { useContext, useState } from "react";
 import { useAuth } from "../../../contexts/AuthContext";
 import { LoadingFlowContext } from "../../../contexts/LoadingFlowContext";
-import useCidrBlockVPCStore from "../store/cidrBlocksIp";
 import { buildRoutingPreview } from "../utils/buildRoutingPreview";
 import { TYPE_VPC_NODE } from "../utils/constants";
 import { groupInstancesBySubnet, groupSubnetsByVpc, validateTopology } from "../utils/topologyValidation";
@@ -39,6 +38,7 @@ const useDeployNetwork = ({ nodes, edges }) => {
     // 2) Preview de rutas (intra=local, inter=router)
     const preview = buildRoutingPreview(nodes, edges);
 
+
     // 3) VPCs del canvas
     const vpcNodes = nodes.filter(n => n.type === TYPE_VPC_NODE);
     if (vpcNodes.length === 0) {
@@ -74,7 +74,7 @@ const useDeployNetwork = ({ nodes, edges }) => {
         return {
           name: sn.data?.subnetName || `subnet-${sn.id}`,
           cidr_block: sn.data?.cidrBlock,
-          availability_zone: sn.data?.zone,
+          availability_zone: sn.data?.availabilityZone,
           public_ip: sn.data?.publicIp,
           subnet_type: sn.data?.subnetType,
           route_table: "main",

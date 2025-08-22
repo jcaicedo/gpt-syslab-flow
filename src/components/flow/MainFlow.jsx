@@ -587,7 +587,7 @@ function MainFlow() {
                     aria-labelledby="parent-modal-title"
                     aria-describedby="parent-modal-description"
                 >
-                    <Box sx={{ ...styleModal, width: selectedNode && selectedNode.type === TYPE_ROUTER_NODE ? 600 : 400 }}>
+                    <Box sx={{ ...styleModal, width: selectedNode && selectedNode.type === TYPE_ROUTER_NODE ? 800 : 400 }}>
 
                         {/* If selected node is restricted, show warning */}
                         {selectedNode && restrictedNodes.includes(selectedNode.type) && (() => {

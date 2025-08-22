@@ -71,6 +71,7 @@ import useRestrictMovement from "./flow-hooks/useRestrictMovement";
 import { useRestrictSubnetsInsideVPC } from "./flow-hooks/useRestrictSubnetsInsideVPC";
 import { useTheme } from "@mui/material/styles";
 import { buildRoutingPreview } from "./utils/buildRoutingPreview";
+import RoutePreviewPanel from "./panels/RoutePreviewPanel";
 
 
 
@@ -109,19 +110,19 @@ const getId = {
 
 
 const styleModal = {
-  position: 'absolute',
-  top: '50%',
-  left: '50%',
-  transform: 'translate(-50%, -50%)',
-  width: 880,           // << sube a 880px
-  maxWidth: '95vw',
-  maxHeight: '85vh',
-  overflowY: 'auto',
-  bgcolor: 'background.paper',
-  border: '2px solid #000',
-  borderRadius: 2,
-  boxShadow: 24,
-  p: 4,
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+    width: 880,           // << sube a 880px
+    maxWidth: '95vw',
+    maxHeight: '85vh',
+    overflowY: 'auto',
+    bgcolor: 'background.paper',
+    border: '2px solid #000',
+    borderRadius: 2,
+    boxShadow: 24,
+    p: 4,
 };
 
 
@@ -141,6 +142,8 @@ function MainFlow() {
     const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
     const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
     const [restorationDone, setRestorationDone] = useState(false);
+    const [showRoutePreview, setShowRoutePreview] = useState(false);
+
     const { loadingFlow } = useContext(LoadingFlowContext);
     useRestrictSubnetsInsideVPC()
     const reactFlow = useReactFlow();
@@ -576,10 +579,21 @@ function MainFlow() {
 
                             <Controls />
                             <Background variant="dots" gap={24} size={1.2} color={dotColor} />
+                            <Panel position="top-right">
+                                <Button variant="contained" size="small" onClick={() => setShowRoutePreview(true)}>
+                                    Preview de rutas
+                                </Button>
+                            </Panel>
 
                         </ReactFlow>
                     </Card>
                 </Grid>
+                <RoutePreviewPanel
+                    open={showRoutePreview}
+                    onClose={() => setShowRoutePreview(false)}
+                    nodes={nodes}
+                    edges={edges}
+                />
 
                 <Modal
                     open={modalIsOpen}

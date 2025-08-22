@@ -1,44 +1,10 @@
-import { useState } from "react";
 import axios from "axios";
-import { TYPE_ROUTER_NODE, TYPE_SUBNETWORK_NODE } from "../utils/constants";
-import { useContext } from "react";
-import { LoadingFlowContext } from "../../../contexts/LoadingFlowContext";
-import useCidrBlockVPCStore from "../store/cidrBlocksIp";
+import { useContext, useState } from "react";
 import { useAuth } from "../../../contexts/AuthContext";
-import { Netmask } from "netmask";
-
-const validateSubnetsCidrs = (subnetworkNodes) => {
-  const invalidSubnets = [];
-
-  subnetworkNodes.forEach(subnet => {
-    const cidr = subnet.data?.cidrBlock;
-    if (!cidr) {
-      invalidSubnets.push({ name: subnet.data?.subnetName || subnet.id, reason: "CIDR missing" });
-      return;
-    }
-    try {
-      new Netmask(cidr);
-    } catch (error) {
-      invalidSubnets.push({ name: subnet.data?.subnetName || subnet.id, reason: "Invalid CIDR format" });
-    }
-  });
-
-  return invalidSubnets;
-};
-
-const isRouteDestinationValid = (destinationCidr, subnets) => {
-  return subnets.some(subnet => subnet.data?.cidrBlock === destinationCidr);
-};
-
-const getConnectedRouter = (subnetNode, routerNodes, edges) => {
-  return routerNodes.find(router =>
-    edges.some(edge =>
-      (edge.source === router.id && edge.target === subnetNode.id) ||
-      (edge.source === subnetNode.id && edge.target === router.id)
-    )
-  );
-};
-
+import { LoadingFlowContext } from "../../../contexts/LoadingFlowContext";
+import { buildRoutingPreview } from "../utils/buildRoutingPreview";
+import { TYPE_VPC_NODE } from "../utils/constants";
+import { groupInstancesBySubnet, groupSubnetsByVpc, validateTopology } from "../utils/topologyValidation";
 
 
 
@@ -52,171 +18,88 @@ const useDeployNetwork = ({ nodes, edges }) => {
   const [successMessage, setSuccessMessage] = useState(null);
   const [errorMessage, setErrorMessage] = useState(null);
   const { setLoadingFlow } = useContext(LoadingFlowContext);
-  const [cidrBlockVPC, prefixLength] = useCidrBlockVPCStore(state => [state.cidrBlockVPC, state.prefixLength]);
 
   const processJsonToCloud = () => {
-    const routerNodes = nodes.filter(n => n.type === TYPE_ROUTER_NODE);
-    const subnetworkNodes = nodes.filter(n => n.type === TYPE_SUBNETWORK_NODE);
 
-    const invalidSubnets = validateSubnetsCidrs(subnetworkNodes);
-
-    if (invalidSubnets.length > 0) {
-      console.error("Subnets with invalid CIDRs detected:", invalidSubnets);
-      const message = `Subredes inválidas:\n${invalidSubnets.map(sub => `${sub.name}: ${sub.reason}`).join("\n")}`;
+    // 1) Validación integral (bloquea deploy si hay errores)
+    const { errors, warnings } = validateTopology(nodes, edges);
+    if (errors.length > 0) {
+      const message =
+        "No se puede desplegar. Corrige estos errores:\n" +
+        errors.map(e => `• ${e}`).join("\n");
       setErrorMessage(message);
       return;
     }
-
-    if (!cidrBlockVPC || !prefixLength) {
-      throw new Error("CIDR block and prefix length are required");
+    if (warnings.length) {
+      // opcional, no bloquea
+      console.warn("Advertencias (no bloquean):\n" + warnings.join("\n"));
     }
 
-
-    // console.log("prefixLength", prefixLength);
-
-    const vpc = {
-      name: "awsdevvpc",
-      cidr_block: `${cidrBlockVPC}/${prefixLength}`,
-      internet_gateway: false,
-      nat_gateway: {
-        enabled: false,
-        public_subnet: "",
-        elastic_ip: ""
-      },
-      subnets: [],
-      route_tables: []
-    };
-
-    const routerRouteTableMap = {}; // router ID → routeTableName
-
-    // Procesar routers
-    routerNodes.forEach((routerNode, index) => {
+    // 2) Preview de rutas (intra=local, inter=router)
+    const preview = buildRoutingPreview(nodes, edges);
 
 
-      const routeEntries = routerNode.data?.routeTable || [];
-      // console.log("routerNode routeTable:", routeEntries);
-      const validRoutes = [];
+    // 3) VPCs del canvas
+    const vpcNodes = nodes.filter(n => n.type === TYPE_VPC_NODE);
+    if (vpcNodes.length === 0) {
+      setErrorMessage("No hay VPC en el canvas.");
+      return;
+    }
 
-      routeEntries.forEach((route, i) => {
+    // 4) Payload final: una VPC por nodo VPC
+    const vpcsPayload = vpcNodes.map(vpcNode => {
+      const name = vpcNode.data?.vpcName || vpcNode.data?.title || vpcNode.id;
+      const region = vpcNode.data?.region || "us-east-1";
+      const cidr = vpcNode.data?.cidrBlock && vpcNode.data?.prefixLength
+        ? `${vpcNode.data.cidrBlock}/${vpcNode.data.prefixLength}` : null;
 
+      const pv = preview.vpcs.find(p => p.id === vpcNode.id);
+      const mainRoutes = (pv?.main_route_table || []).map((r, i) => ({
+        name: `rt-${i + 1}`,
+        dest_cidr: r.dest_cidr,
+        target: r.target,                 // "local" o "router-..."
+        via_router_id: r.via_router_id || null
+      }));
 
-        if (!isRouteDestinationValid(route.destinationCidrBlock, subnetworkNodes)) {
-          console.warn(`Route ${route.destinationCidrBlock} does not match any existing subnet`);
-          return;
-        }
+      const subnetsOfVpc = groupSubnetsByVpc(nodes, vpcNode.id).map(sn => {
+        const instances = groupInstancesBySubnet(nodes, sn.id).map(inst => ({
+          id: inst.id,
+          ami: inst.data?.ami || "ami-default",
+          instance_type: inst.data?.instanceType,
+          ip_address: inst.data?.ipAddress,
+          name: inst.data?.name,
+          ssh_access: inst.data?.sshAccess
+        }));
 
-
-        validRoutes.push({
-          name: `route-${i + 1}`,
-          dest_cidr: route.destinationCidrBlock
-        });
+        return {
+          name: sn.data?.subnetName || `subnet-${sn.id}`,
+          cidr_block: sn.data?.cidrBlock,
+          availability_zone: sn.data?.availabilityZone,
+          public_ip: sn.data?.publicIp,
+          subnet_type: sn.data?.subnetType,
+          route_table: "main",
+          instances
+        };
       });
 
-      if (validRoutes.length > 0) {
-        const routeTableName = routerNode.data?.routeTableName || `route-table-${index + 1}`;
-        vpc.route_tables.push({
-          name: routeTableName,
-          routes: validRoutes
-        });
-
-        routerRouteTableMap[routerNode.id] = routeTableName;
-      }
-
-      if (routerNode.data?.internetGateway) {
-        vpc.internet_gateway = true;
-      }
-
-      if (routerNode.data?.natGateway) {
-        vpc.nat_gateway.enabled = true;
-        vpc.nat_gateway.public_subnet = routerNode.data?.natGatewayPublicSubnet || "";
-        vpc.nat_gateway.elastic_ip = routerNode.data?.natGatewayElasticIp || "";
-      }
-    });
-
-    // Procesar subredes
-    // subnetworkNodes.forEach((subnetNode) => {
-    //   const connectedRouter = routerNodes.find(router =>
-    //     edges.some(edge =>
-    //       (edge.source === router.id && edge.target === subnetNode.id) ||
-    //       (edge.source === subnetNode.id && edge.target === router.id)
-    //     )
-    //   );
-
-
-    //   const routeTableName = connectedRouter ? routerRouteTableMap[connectedRouter.id] : "public";
-
-    //   const subnet = {
-    //     name: subnetNode.data.subnetName || `subnet-${subnetNode.id}`,
-    //     cidr_block: subnetNode.data.cidrBlock,
-    //     availability_zone: subnetNode.data.zone,
-    //     public_ip: subnetNode.data.publicIp,
-    //     route_table: routeTableName,
-    //     instances: []
-    //   };
-
-    //   const instances = nodes.filter(node => node.parentId === subnetNode.id);
-    //   instances.forEach(instance => {
-    //     subnet.instances.push({
-    //       id: instance.id,
-    //       ami: instance.data.ami || "ami-default",
-    //       instance_type: instance.data.instanceType,
-    //       ip_address: instance.data.ipAddress,
-    //       name: instance.data.name,
-    //       ssh_access: instance.data.sshAccess
-    //     });
-    //   });
-
-    //   vpc.subnets.push(subnet);
-    // });
-
-    subnetworkNodes.forEach((subnetNode) => {
-      const connectedRouter = getConnectedRouter(subnetNode, routerNodes, edges);
-      const routeTableName = connectedRouter ? routerRouteTableMap[connectedRouter.id] : "public";
-
-      // Determinar con qué subredes NO tiene conexión
-      const accessibleSubnets = subnetworkNodes.filter(other => {
-        if (other.id === subnetNode.id) return false;
-        const otherRouter = getConnectedRouter(other, routerNodes, edges);
-        return connectedRouter && otherRouter && otherRouter.id === connectedRouter.id;
-      });
-
-      const deniedCidrs = subnetworkNodes
-        .filter(n => !accessibleSubnets.includes(n) && n.id !== subnetNode.id)
-        .map(n => n.data?.cidrBlock)
-        .filter(cidr => !!cidr);
-
-
-      const subnet = {
-        name: subnetNode.data.subnetName || `subnet-${subnetNode.id}`,
-        cidr_block: subnetNode.data.cidrBlock,
-        availability_zone: subnetNode.data.zone,
-        public_ip: subnetNode.data.publicIp,
-        route_table: routeTableName,
-        denied_cidrs: deniedCidrs,
-        instances: []
+      return {
+        id: vpcNode.id,
+        name,
+        region,
+        cidr_block: cidr,
+        internet_gateway: !!vpcNode.data?.internetGateway,
+        nat_gateway: {
+          enabled: !!vpcNode.data?.enableNatGateway,
+          public_subnet: vpcNode.data?.natGatewayPublicSubnet || "",
+          elastic_ip: vpcNode.data?.natGatewayElasticIp || ""
+        },
+        route_tables: [{ name: "main", routes: mainRoutes }],
+        subnets: subnetsOfVpc
       };
-
-      const instances = nodes.filter(node => node.parentId === subnetNode.id);
-      instances.forEach(instance => {
-        subnet.instances.push({
-          id: instance.id,
-          ami: instance.data.ami || "ami-default",
-          instance_type: instance.data.instanceType,
-          ip_address: instance.data.ipAddress,
-          name: instance.data.name,
-          ssh_access: instance.data.sshAccess
-        });
-      });
-
-      vpc.subnets.push(subnet);
     });
 
-
-    setTransformedData({
-      cloud: "aws",
-      vpcs: [vpc]
-    });
-
+    // 5) Confirmación
+    setTransformedData({ cloud: "aws", vpcs: vpcsPayload });
     setShowConfirmation(true);
   };
 

@@ -70,6 +70,8 @@ import useHandleDrop from "./flow-hooks/useHandleDrop";
 import useRestrictMovement from "./flow-hooks/useRestrictMovement";
 import { useRestrictSubnetsInsideVPC } from "./flow-hooks/useRestrictSubnetsInsideVPC";
 import { useTheme } from "@mui/material/styles";
+import { buildRoutingPreview } from "./utils/buildRoutingPreview";
+
 
 
 const nodeTypes = {
@@ -106,17 +108,23 @@ const getId = {
 
 
 
-const style = {
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    transform: 'translate(-50%, -50%)',
-    width: 400,
-    bgcolor: 'background.paper',
-    border: '2px solid #000',
-    boxShadow: 24,
-    p: 4,
+const styleModal = {
+  position: 'absolute',
+  top: '50%',
+  left: '50%',
+  transform: 'translate(-50%, -50%)',
+  width: 880,           // << sube a 880px
+  maxWidth: '95vw',
+  maxHeight: '85vh',
+  overflowY: 'auto',
+  bgcolor: 'background.paper',
+  border: '2px solid #000',
+  borderRadius: 2,
+  boxShadow: 24,
+  p: 4,
 };
+
+
 
 
 const connectionLineStyle = { strokeWidth: 2, stroke: '#1a2438' };
@@ -144,7 +152,10 @@ function MainFlow() {
 
     // eslint-disable-next-line no-unused-vars
     const [target, setTarget] = useState(null);
-    const [amiList, setAmiList] = useState([])
+    const [amiList, setAmiList] = useState([]);
+    const [routesPreviewOpen, setRoutesPreviewOpen] = useState(false);
+    const [routesPreviewData, setRoutesPreviewData] = useState(null);
+
     // eslint-disable-next-line no-unused-vars
     const [clickedNodeId, setClickedNodeId] = useClickedNodeIdStore(state => [state.clickedNodeId, state.setClickedNodeId])
 
@@ -330,27 +341,57 @@ function MainFlow() {
         handleFlowRestore();
     }, [onRestoreFlow]);
 
+    // helper para comparar arrays simples sin ordenar
+    const shallowArrEq = (a = [], b = []) =>
+        a.length === b.length && a.every(x => b.includes(x));
 
     useEffect(() => {
-        setNodes((nds) => nds.map((node) => {
+        // 1) Mapa VPC -> routers conectados (derivado SOLO de edges)
+        const idToType = new Map(nodes.map(n => [n.id, n.type])); // solo lectura
+        const vpcToRouters = new Map();
 
-            // console.log("Clicked Node ID in MainFlow:", clickedNodeId);
-            if (node.id === clickedNodeId) {
-                return {
-                    ...node,
-                    data: {
-                        ...node.data,
+        edges.forEach(e => {
+            const sType = idToType.get(e.source);
+            const tType = idToType.get(e.target);
+            const isVpcRouter =
+                (sType === TYPE_VPC_NODE && tType === TYPE_ROUTER_NODE) ||
+                (sType === TYPE_ROUTER_NODE && tType === TYPE_VPC_NODE);
 
-                    }
-                }
+            if (!isVpcRouter) return;
+
+            const vpcId = (sType === TYPE_VPC_NODE) ? e.source : e.target;
+            const routerId = (sType === TYPE_ROUTER_NODE) ? e.source : e.target;
+
+            if (!vpcToRouters.has(vpcId)) vpcToRouters.set(vpcId, new Set());
+            vpcToRouters.get(vpcId).add(routerId);
+        });
+
+        // 2) Detectar cambios reales
+        const updates = [];
+        for (const n of nodes) {
+            if (n.type !== TYPE_VPC_NODE) continue;
+            const newList = Array.from(vpcToRouters.get(n.id) || []);
+            const prevList = Array.isArray(n.data?.connectedRouters) ? n.data.connectedRouters : [];
+            if (!shallowArrEq(newList, prevList)) {
+                updates.push({ id: n.id, newList });
             }
-            return node
-        })
+        }
 
-        )
+        // 3) Si no hay cambios, no setear (evita re-render en bucle)
+        if (updates.length === 0) return;
 
+        setNodes(curr =>
+            curr.map(n => {
+                const u = updates.find(x => x.id === n.id);
+                return u
+                    ? { ...n, data: { ...n.data, connectedRouters: u.newList } }
+                    : n;
+            })
+        );
 
-    }, [clickedNodeId, nodeName, setNodes])
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [edges]);
+
 
 
     // Función para restaurar los nodos a su estado inicial
@@ -365,6 +406,95 @@ function MainFlow() {
             </Box>
         );
     }
+
+    // ==== PREVIEW: construir tablas de ruteo por VPC a partir de nodes+edges ====
+    // function buildRoutingPreview(nodes, edges) {
+    //     // 1) separar VPCs y Routers
+    //     const vpcs = nodes.filter(n => n.type === TYPE_VPC_NODE);
+    //     const routers = nodes.filter(n => n.type === TYPE_ROUTER_NODE);
+
+    //     // 2) índice rápido por id
+    //     const idToNode = new Map(nodes.map(n => [n.id, n]));
+    //     const idToType = new Map(nodes.map(n => [n.id, n.type]));
+
+    //     // 3) conexiones VPC <-> Router derivadas de edges
+    //     const vpcToRouters = new Map();
+    //     edges.forEach(e => {
+    //         const sType = idToType.get(e.source);
+    //         const tType = idToType.get(e.target);
+    //         const isVpcRouter =
+    //             (sType === TYPE_VPC_NODE && tType === TYPE_ROUTER_NODE) ||
+    //             (sType === TYPE_ROUTER_NODE && tType === TYPE_VPC_NODE);
+    //         if (!isVpcRouter) return;
+
+    //         const vpcId = (sType === TYPE_VPC_NODE) ? e.source : e.target;
+    //         const routerId = (sType === TYPE_ROUTER_NODE) ? e.source : e.target;
+
+    //         if (!vpcToRouters.has(vpcId)) vpcToRouters.set(vpcId, new Set());
+    //         vpcToRouters.get(vpcId).add(routerId);
+    //     });
+
+    //     // 4) index de rutas por router (si el form ya guardó data.routeTable)
+    //     const routesByRouter = new Map();
+    //     routers.forEach(r => {
+    //         const entries = Array.isArray(r.data?.routeTable) ? r.data.routeTable : [];
+    //         routesByRouter.set(r.id, entries);
+    //     });
+
+    //     // 5) armar preview por VPC
+    //     const preview = {
+    //         vpcs: vpcs.map(v => {
+    //             const name = v.data?.vpcName || v.data?.title || v.id;
+    //             const cidr =
+    //                 v.data?.cidrBlock && v.data?.prefixLength
+    //                     ? `${v.data.cidrBlock}/${v.data.prefixLength}`
+    //                     : null;
+
+    //             const connectedRouters = Array.from(vpcToRouters.get(v.id) || []);
+
+    //             // tabla "main" por VPC
+    //             const main = [];
+    //             if (cidr) main.push({ dest_cidr: cidr, target: 'local' });
+
+    //             // rutas desde router(es) conectados cuyo sourceVpcId === esta VPC
+    //             connectedRouters.forEach(rid => {
+    //                 const rNode = idToNode.get(rid);
+    //                 const rName = rNode?.data?.identifier || rNode?.data?.label || rid;
+    //                 const entries = routesByRouter.get(rid) || [];
+    //                 entries
+    //                     .filter(e => e.sourceVpcId === v.id)
+    //                     .forEach(e => {
+    //                         if (!e?.destCidr) return;
+    //                         main.push({
+    //                             dest_cidr: e.destCidr,
+    //                             target: rName,          // frontend: muestra por dónde saldría (router)
+    //                             via_router_id: rid      // útil para backend luego
+    //                         });
+    //                     });
+    //             });
+
+    //             // deduplicar por dest_cidr manteniendo primera coincidencia
+    //             const seen = new Set();
+    //             const mainDedup = main.filter(r => {
+    //                 if (seen.has(r.dest_cidr)) return false;
+    //                 seen.add(r.dest_cidr);
+    //                 return true;
+    //             });
+
+    //             return {
+    //                 id: v.id,
+    //                 name,
+    //                 region: v.data?.region,
+    //                 cidr,
+    //                 connectedRouters,
+    //                 main_route_table: mainDedup
+    //             };
+    //         })
+    //     };
+
+    //     return preview;
+    // }
+
 
     return (
         <NetworkProvider>
@@ -399,7 +529,16 @@ function MainFlow() {
                             onZoomOut={handleZoomOut}
                             onFitView={handleFitView}
                             title="Logical"
+                            onPreviewRoutes={() => {
+                                const preview = buildRoutingPreview(nodes, edges);
+                                setRoutesPreviewData(preview);
+                                setRoutesPreviewOpen(true);
+                                // si quieres ver en consola también:
+                                // console.log('ROUTES PREVIEW', preview);
+                            }}
+
                         />
+
                         <ReactFlow
                             nodes={nodes}
                             edges={edges.map(e => ({ ...e, style: connectionLineStyle, animated: true }))}
@@ -435,31 +574,6 @@ function MainFlow() {
 
                         >
 
-                            {/* <Panel position="top-right">
-                                <Stack spacing={1}>
-                                    <Button onClick={onSaveFlow} variant="contained" color="secondary">
-                                        Save
-                                    </Button>
-                                    <Button onClick={onRestoreFlow} variant="contained" color="warning">
-                                        Restore
-                                    </Button>
-                                    <Button
-                                        onClick={restoreInitialNodes}
-                                        variant="contained"
-                                        color="primary"
-                                    >
-                                        Restore To Initial
-                                    </Button>
-                                    <Button
-                                        onClick={processJsonToCloud}
-                                        variant="contained"
-                                        color="primary"
-                                    >
-                                        Deploy Network
-                                    </Button>
-                                </Stack>
-                            </Panel> */}
-
                             <Controls />
                             <Background variant="dots" gap={24} size={1.2} color={dotColor} />
 
@@ -473,7 +587,7 @@ function MainFlow() {
                     aria-labelledby="parent-modal-title"
                     aria-describedby="parent-modal-description"
                 >
-                    <Box sx={{ ...style, width: 400 }}>
+                    <Box sx={{ ...styleModal, width: selectedNode && selectedNode.type === TYPE_ROUTER_NODE ? 800 : 400 }}>
 
                         {/* If selected node is restricted, show warning */}
                         {selectedNode && restrictedNodes.includes(selectedNode.type) && (() => {
@@ -532,17 +646,55 @@ function MainFlow() {
 
                         {/* If node type is Router, show RouterNodeForm */}
                         {selectedNode && selectedNode.type === TYPE_ROUTER_NODE && (() => {
-                            const vlanRegion = "us-east-1"; // o léela desde el doc de la VLAN si la guardas
+                            const idToNode = new Map(nodes.map(n => [n.id, n]));
+                            const idToType = new Map(nodes.map(n => [n.id, n.type]));
+
+                            const connectedVpcsSet = new Set();
+                            edges.forEach(e => {
+                                const touchesRouter = e.source === selectedNode.id || e.target === selectedNode.id;
+                                if (!touchesRouter) return;
+                                const otherId = e.source === selectedNode.id ? e.target : e.source;
+                                const other = idToNode.get(otherId);
+                                if (other?.type === TYPE_VPC_NODE) {
+                                    const base = other.data?.cidrBlock;
+                                    const pref = other.data?.prefixLength;
+                                    const cidr = base && pref ? `${base}/${pref}` : null;
+                                    connectedVpcsSet.add(JSON.stringify({
+                                        id: other.id,
+                                        name: other.data?.vpcName || other.data?.title || other.id,
+                                        cidr
+                                    }));
+                                }
+                            });
+                            const connectedVpcs = Array.from(connectedVpcsSet).map(JSON.parse);
+
+                            const allVpcCidrs = nodes
+                                .filter(n => n.type === TYPE_VPC_NODE)
+                                .map(n => {
+                                    const base = n.data?.cidrBlock;
+                                    const pref = n.data?.prefixLength;
+                                    return {
+                                        id: n.id,
+                                        name: n.data?.vpcName || n.data?.title || n.id,
+                                        cidr: base && pref ? `${base}/${pref}` : null
+                                    };
+                                });
+
+                            const vlanRegion = "us-east-1";
+
                             return (
                                 <RouterNodeForm
-                                    node={selectedNode}                 // << importante
+                                    node={selectedNode}
                                     nodeData={selectedNode.data}
                                     onSave={saveNodeData}
                                     deleteNode={deleteNodeInstance}
+                                    connectedVpcs={connectedVpcs}
+                                    allVpcCidrs={allVpcCidrs}
                                     vlanRegion={vlanRegion}
-                                />
-                            );
+                                />);
                         })()}
+
+
                         {/* If node type is VPC, show VPCNodeForm */}
                         {selectedNode && selectedNode.type === TYPE_VPC_NODE && (() => {
 
@@ -630,6 +782,51 @@ function MainFlow() {
                     </Box>
 
                 </Modal>
+
+                <Modal
+                    open={routesPreviewOpen}
+                    onClose={() => setRoutesPreviewOpen(false)}
+                    aria-labelledby="routes-preview-title"
+                    aria-describedby="routes-preview-description"
+                >
+                    <Box sx={{
+                        position: 'absolute',
+                        top: '50%',
+                        left: '50%',
+                        transform: 'translate(-50%, -50%)',
+                        width: '60%',
+                        height: '70%',
+                        bgcolor: 'background.paper',
+                        boxShadow: 24,
+                        p: 4,
+                        overflow: 'hidden',
+                    }}>
+                        <Typography id="routes-preview-title" variant="h6" component="h2">
+                            Routing Preview
+                        </Typography>
+                        <Typography id="routes-preview-description" sx={{ mt: 1 }}>
+                            Tablas de enrutamiento construidas por VPC (intra = local, inter = vía router conectado).
+                        </Typography>
+
+                        <Box sx={{
+                            maxHeight: '75%',
+                            overflowY: 'auto',
+                            mt: 2,
+                            border: '1px solid #ccc',
+                            padding: 2,
+                            height: '100%'
+                        }}>
+                            <pre>{JSON.stringify(routesPreviewData, null, 2)}</pre>
+                        </Box>
+
+                        <Stack mt={3} direction="row" spacing={2} flexWrap="wrap">
+                            <Button variant="contained" onClick={() => setRoutesPreviewOpen(false)}>
+                                Cerrar
+                            </Button>
+                        </Stack>
+                    </Box>
+                </Modal>
+
 
 
                 <Snackbar

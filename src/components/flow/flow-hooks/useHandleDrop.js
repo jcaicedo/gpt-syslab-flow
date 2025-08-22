@@ -90,11 +90,23 @@ export default function useHandleDrop(reactFlowInstance, setNodes) {
 
         // 3) ROUTER: solo 1 por lienzo (chequeo atómico sobre nds)
         if (type === TYPE_ROUTER_NODE) {
-          const exists = all.some((n) => n.type === TYPE_ROUTER_NODE);
-          if (exists) {
-            alert('Only one router node is allowed in the flow.');
-            return nds;
+          //valores por defecto útiles para el form de router
+
+          newNode = {
+            ...newNode,
+            data: {
+              ...newNode.data,
+              identifier: `router-${id}`,
+              region: 'us-east-1',
+              routeTable: [] //lista vacía de rutas 
+            }
           }
+
+          // const exists = all.some((n) => n.type === TYPE_ROUTER_NODE);
+          // if (exists) {
+          //   alert('Only one router node is allowed in the flow.');
+          //   return nds;
+          // }
           return [...nds, newNode];
         }
 

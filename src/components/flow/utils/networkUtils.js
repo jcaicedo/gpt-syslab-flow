@@ -1,54 +1,43 @@
-import { Netmask } from "netmask";
+// src/components/flow/utils/networkUtils.js
+import { Netmask } from 'netmask';
 
+/** Convierte "A.B.C.D" → entero sin signo para comparar rangos IP. */
+const ipToLong = (ip) => {
+  const [a, b, c, d] = ip.split('.').map((n) => Number(n));
+  return ((a << 24) >>> 0) + (b << 16) + (c << 8) + d;
+};
 
-/**
- * Verifica si un CIDR objetivo está completamente contenido dentro del CIDR padre.
- * @param {string} parentCidr - e.g. '10.0.0.0/16' (VLAN o VPC)
- * @param {string} targetCidr - e.g. '10.0.1.0/24'
- * @returns {boolean}
- */
-export const isCidrInVpcRange = (parentCidr, targetCidr) => {
+/** Devuelve [firstLong, lastLong] del rango que cubre un CIDR. */
+const cidrRange = (cidr) => {
+  const block = new Netmask(cidr);
+  return [ipToLong(block.first), ipToLong(block.last)];
+};
 
-    if (
-        !targetCidr ||
-        typeof targetCidr !== 'string' ||
-        !targetCidr.includes('/') ||
-        !/^(\d{1,3}\.){3}\d{1,3}\/\d{1,2}$/.test(targetCidr)
-    ) {
-        return false;
-    }
-
-    try {
-        const parent = new Netmask(parentCidr);
-        const child = new Netmask(targetCidr);
-
-        //Se asegura contención completa del bloque, no solo la base
-        return parent.contains(child.base) && parent.contains(child.broadcast);
-    }
-    catch (error) {
-        console.error("Error validating CIDR range:", error);
-        return false;
-    }
-}
-
+/** ✅ Verifica solapamiento real entre dos CIDR (sin falsos positivos). */
 export const overlapsCidrs = (cidrA, cidrB) => {
-    try {
-        const a = new Netmask(cidrA), b = new Netmask(cidrB);
-        return !(a.broadcast < b.base || b.broadcast < a.base);
-    } catch (error) {
-        console.error("Error checking CIDR overlap:", error);
-        return true;
-    }
-}
+  try {
+    const [aStart, aEnd] = cidrRange(cidrA);
+    const [bStart, bEnd] = cidrRange(cidrB);
+    // Se solapan si los rangos se intersectan
+    return !(aEnd < bStart || bEnd < aStart);
+  } catch (error) {
+    console.error('Error checking CIDR overlap:', error);
+    // Conservador: si no se puede parsear, trátalo como solapado
+    return true;
+  }
+};
 
-export const overlapsAny = (targetCidr, list=[]) =>
-  list.some(c => overlapsCidrs(targetCidr, c));
+/** ¿El CIDR objetivo se solapa con alguno de la lista? */
+export const overlapsAny = (targetCidr, list = []) =>
+  list.some((c) => overlapsCidrs(targetCidr, c));
 
-export const ipInCidr = (ip, cidr) => {
-    try { return new Netmask(cidr).contains(ip); } catch { return false; }
-}
-
-
-
-
-
+/** child ⊆ parent : ¿el CIDR hijo está completamente dentro del padre? */
+export const isCidrInVpcRange = (parentCidr, childCidr) => {
+  try {
+    const parent = new Netmask(parentCidr);
+    const child = new Netmask(childCidr);
+    return parent.contains(child.first) && parent.contains(child.last);
+  } catch {
+    return false;
+  }
+};

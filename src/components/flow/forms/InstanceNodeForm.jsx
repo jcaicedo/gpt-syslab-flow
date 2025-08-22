@@ -5,6 +5,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import { useFormValidationSchema } from './validations/useFormValidations';
 import { TYPE_INSTANCE_NODE } from "../utils/constants";
 import { useNetwork } from "../../../contexts/NetworkNodesContext";
+import { useEffect } from "react";
 
 // Extract form logic and UI rendering from instance node form
 const InstanceNodeForm = ({
@@ -25,7 +26,7 @@ const InstanceNodeForm = ({
         false
     );
 
-    const { register, handleSubmit, formState: { errors } } = useForm({
+    const { register, handleSubmit, formState: { errors }, reset } = useForm({
         resolver: yupResolver(validationSchema),
         defaultValues: {
             name: nodeData.name || "",
@@ -36,7 +37,15 @@ const InstanceNodeForm = ({
         }
     })
 
-
+    useEffect(() => {
+        reset({
+            name: nodeData.name || "",
+            ipAddress: nodeData.ipAddress || "",
+            ami: nodeData.ami || "",
+            instanceType: nodeData.instanceType || "t2.micro",
+            sshAccess: nodeData.sshAccess || "",
+        });
+    }, [nodeData, reset]);
 
     const onSubmit = (data) => {
         console.log("OnSubmit  instanceNode data:", data);

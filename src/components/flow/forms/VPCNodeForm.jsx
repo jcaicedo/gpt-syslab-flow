@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useFormValidationSchema } from "./validations/useFormValidations";
 import { CLOUD_AWS_LABEL, CLOUD_AWS_VALUE, VPC_CHILD_FORM, VPC_FORM } from "../utils/constants";
+import { useEffect } from "react";
 
 // eslint-disable-next-line react/prop-types
 const VPCNodeForm = ({
@@ -16,6 +17,7 @@ const VPCNodeForm = ({
   siblingVpcCidrs = [], // <-- NUEVO: ["10.0.1.0/24", "10.0.2.0/24", ...]
   defaultRegion = "us-east-1" // opcional si luego quieres agregar región aquí
 }) => {
+
   const validationSchema = useFormValidationSchema(
     VPC_CHILD_FORM,
     null, // cidrBlockVPC NO se usa en este form
@@ -24,7 +26,7 @@ const VPCNodeForm = ({
     true // activa validación CIDR
   );
 
-  const { register, handleSubmit, formState: { errors } } = useForm({
+  const { register, handleSubmit, formState: { errors }, reset } = useForm({
     resolver: yupResolver(validationSchema),
     defaultValues: {
       cloudProvider: nodeData.cloudProvider || CLOUD_AWS_VALUE,
@@ -37,6 +39,7 @@ const VPCNodeForm = ({
           : "",
     }
   });
+
   console.log("VPCNodeForm defaultValues:", {
     cloudProvider: nodeData.cloudProvider || CLOUD_AWS_VALUE,
     vpcName: nodeData.vpcName || "",
@@ -45,6 +48,19 @@ const VPCNodeForm = ({
         ? `${nodeData.cidrBlock}/${nodeData.prefixLength}`
         : "",
   });
+
+  useEffect(() => {
+    reset({
+      cloudProvider: nodeData.cloudProvider || CLOUD_AWS_VALUE,
+      vpcName: nodeData.vpcName || "",
+      region: nodeData.region || defaultRegion,
+      cidrBlock:
+        nodeData.cidrBlock && nodeData.prefixLength
+          ? `${nodeData.cidrBlock}/${nodeData.prefixLength}`
+          : "",
+    });
+  }, [nodeData, reset, defaultRegion]);
+
 
   const onSubmit = (data) => {
     const [base, prefix] = data.cidrBlock.split("/");
